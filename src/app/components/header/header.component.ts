@@ -248,6 +248,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.registrarPagamento.emit();
   }
 
+  async onSincronizar() {
+    try {
+      await this.emprestimoService.sincronizar();
+      // feedback rápido ao usuário
+      alert('Sincronização solicitada. Aguarde alguns segundos e atualize a outra sessão.');
+    } catch (err) {
+      console.error('Erro ao forçar sincronização:', err);
+      alert('Falha ao solicitar sincronização. Veja o console para detalhes.');
+    }
+  }
+
   onVoltarDashboard() {
     this.voltarDashboard.emit();
   }

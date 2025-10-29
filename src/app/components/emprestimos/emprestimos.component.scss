@@ -31,8 +31,19 @@
       .stat-icon { font-size: 2rem; opacity: 0.8; }
       .stat-info {
         flex: 1;
+        /* allow flex children to shrink properly (prevents overflow) */
+        min-width: 0;
         .stat-title { font-size: 0.85rem; opacity: 0.8; margin-bottom: 5px; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+        /* make large numbers responsive and prevent them from escaping the card */
+        .stat-value {
+          font-weight: 700;
+          line-height: 1;
+          /* scale between 1rem and 1.8rem depending on viewport, but never overflow */
+          font-size: clamp(1rem, 2.5vw, 1.8rem);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
         .stat-subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 4px; }
       }
     }
