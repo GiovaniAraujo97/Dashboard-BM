@@ -30,21 +30,24 @@
 
       .stat-icon { font-size: 2rem; opacity: 0.8; }
       .stat-info {
-        flex: 1;
-        /* allow flex children to shrink properly (prevents overflow) */
-        min-width: 0;
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
         .stat-title { font-size: 0.85rem; opacity: 0.8; margin-bottom: 5px; }
         /* make large numbers responsive and prevent them from escaping the card */
         .stat-value {
           font-weight: 700;
-          line-height: 1;
-          font-size: clamp(1rem, 2vw, 1.3rem);
+          line-height: 1.1;
+          font-size: clamp(1rem, 1.7vw, 1.1rem);
           max-width: 100%;
-          display: block;
-          white-space: normal;
-          word-break: break-word;
-          overflow-wrap: break-word;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          word-break: break-all;
           text-align: right;
+        }
         }
         .stat-subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 4px; }
       }
