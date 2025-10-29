@@ -85,13 +85,10 @@ export class StorageService {
           const remoteData: AppData = JSON.parse(fileContent);
           const localData = this.dataSubject.value;
 
-          // Verificar se os dados remotos são mais recentes
-          if (remoteData.version > localData.version ||
-              new Date(remoteData.lastUpdated) > new Date(localData.lastUpdated)) {
-            this.dataSubject.next(remoteData);
-            this.saveToLocal(remoteData);
-            console.log('Dados sincronizados do servidor (via proxy)');
-          }
+          // Sempre sobrescrever o dado local pelo remoto ao sincronizar
+          this.dataSubject.next(remoteData);
+          this.saveToLocal(remoteData);
+          console.log('Dados sincronizados do servidor (via proxy)');
         }
       } else {
         console.warn('Não foi possível ler o Gist via proxy:', response.status);
