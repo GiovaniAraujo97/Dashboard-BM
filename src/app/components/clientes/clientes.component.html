@@ -1,0 +1,273 @@
+<div class="clientes-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Gestão de Clientes</h1>
+      <p>Cadastro e controle de clientes da carteira de empréstimos</p>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      <span class="icon">👤</span>
+      Novo Cliente
+    </button>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar por nome, CPF, email ou telefone..."
+        [(ngModel)]="searchTerm"
+        class="search-input">
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <div class="filters">
+      <select class="status-filter">
+        <option value="">Todos os Status</option>
+        <option value="ativo">Ativo</option>
+        <option value="inativo">Inativo</option>
+        <option value="bloqueado">Bloqueado</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="clientes-stats">
+    <div class="stat-card">
+      <span class="stat-number">{{ clientes.length }}</span>
+      <span class="stat-label">Total de Clientes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ getClientesAtivos() }}</span>
+      <span class="stat-label">Ativos</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ getRendaMedia() }}</span>
+      <span class="stat-label">Renda Média</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ getScoreMedio() }}</span>
+      <span class="stat-label">Score Médio</span>
+    </div>
+  </div>
+
+  <div class="clientes-table">
+    <div class="table-header">
+      <div class="table-title">
+        <h3>Lista de Clientes</h3>
+        <span class="total-count">{{ clientesFiltrados.length }} clientes encontrados</span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Contato</th>
+            <th>Renda</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Cadastro</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cliente of clientesFiltrados" class="cliente-row">
+            <td>
+              <div class="cliente-info">
+                <strong>{{ cliente.nome }}</strong>
+                <small>{{ cliente.endereco }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="cpf">{{ formatCPF(cliente.cpf) }}</span>
+            </td>
+            <td>
+              <div class="contato-info">
+                <span>{{ formatPhone(cliente.telefone) }}</span>
+                <small>{{ cliente.email }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="renda">{{ formatCurrency(cliente.renda) }}</span>
+            </td>
+            <td>
+              <span class="score" [class]="getScoreColor(cliente.score)">
+                {{ cliente.score }}
+              </span>
+            </td>
+            <td>
+              <span class="status" [class]="getStatusClass(cliente.status)">
+                {{ cliente.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <span class="data-cadastro">{{ cliente.dataCadastro | date:'dd/MM/yyyy' }}</span>
+            </td>
+            <td>
+              <div class="acoes">
+                <button class="btn-edit" (click)="openModal(cliente)" title="Editar">
+                  ✏️
+                </button>
+                <button class="btn-delete" (click)="confirmarExclusao(cliente)" title="Excluir">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="clientesFiltrados.length === 0" class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>Nenhum cliente encontrado</h3>
+        <p>Nenhum cliente corresponde aos critérios de busca.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Cadastro/Edição -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingCliente ? 'Editar Cliente' : 'Novo Cliente' }}</h2>
+      <button class="close-btn" (click)="closeModal()">✕</button>
+    </div>
+
+    <form class="modal-body" (ngSubmit)="salvarCliente()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome">Nome Completo *</label>
+          <input 
+            type="text" 
+            id="nome"
+            [(ngModel)]="novoCliente.nome"
+            name="nome"
+            required
+            placeholder="Digite o nome completo">
+        </div>
+        <div class="form-group">
+          <label for="cpf">CPF *</label>
+          <input 
+            type="text" 
+            id="cpf"
+            [(ngModel)]="novoCliente.cpf"
+            name="cpf"
+            required
+            placeholder="00000000000"
+            maxlength="11"
+            (input)="onCpfInput($event)">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="telefone">Telefone *</label>
+          <input 
+            type="text" 
+            id="telefone"
+            [(ngModel)]="novoCliente.telefone"
+            name="telefone"
+            required
+            placeholder="11999999999"
+            maxlength="11"
+            (input)="onPhoneInput($event)">
+        </div>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="novoCliente.email"
+            name="email"
+            required
+            placeholder="cliente@email.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="endereco">Endereço Completo *</label>
+        <input 
+          type="text" 
+          id="endereco"
+          [(ngModel)]="novoCliente.endereco"
+          name="endereco"
+          required
+          placeholder="Rua, número, bairro, cidade - CEP">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="renda">Renda Mensal *</label>
+          <input 
+            type="number" 
+            id="renda"
+            [(ngModel)]="novoCliente.renda"
+            name="renda"
+            required
+            min="0"
+            step="0.01"
+            placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="score">Score de Crédito</label>
+          <input 
+            type="number" 
+            id="score"
+            [(ngModel)]="novoCliente.score"
+            name="score"
+            min="0"
+            max="1000"
+            placeholder="0-1000">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" [(ngModel)]="novoCliente.status" name="status">
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+          <option value="bloqueado">Bloqueado</option>
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="!isFormValid()">
+          {{ editingCliente ? 'Atualizar' : 'Cadastrar' }} Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelarExclusao()">
+  <div class="modal modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Exclusão</h2>
+      <button class="close-btn" (click)="cancelarExclusao()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-confirmation">
+        <div class="warning-icon">⚠️</div>
+        <p>Tem certeza que deseja excluir o cliente:</p>
+        <strong>{{ clienteToDelete?.nome }}</strong>
+        <p class="warning-text">Esta ação não pode ser desfeita.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cancelarExclusao()">
+        Cancelar
+      </button>
+      <button class="btn-danger" (click)="excluirCliente()">
+        Excluir Cliente
+      </button>
+    </div>
+  </div>
+</div>

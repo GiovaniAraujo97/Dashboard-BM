@@ -1,0 +1,340 @@
+<div class="emprestimos-container">
+  <!-- Header com estatísticas -->
+  <div class="estatisticas-header">
+    <div class="stat-card total">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <div class="stat-title">Total de Empréstimos</div>
+        <div class="stat-value">{{ estatisticas.total }}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card ativo">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="stat-title">Empréstimos Ativos</div>
+        <div class="stat-value">{{ estatisticas.ativos }}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card pago">
+      <div class="stat-icon">💚</div>
+      <div class="stat-info">
+        <div class="stat-title">Pagos</div>
+        <div class="stat-value">{{ estatisticas.pagos }}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card vencido">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-info">
+        <div class="stat-title">Vencidos</div>
+        <div class="stat-value">{{ estatisticas.vencidos }}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card valor">
+      <div class="stat-icon">💵</div>
+      <div class="stat-info">
+        <div class="stat-title">Valor Total Ativo</div>
+        <div class="stat-value">{{ formatarMoeda(estatisticas.valorTotal) }}</div>
+        <div class="stat-subtitle">em empréstimos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles de filtro e ações -->
+  <div class="controles">
+    <div class="filtros">
+      <div class="filtro-grupo">
+        <label>Status:</label>
+        <select [(ngModel)]="filtroStatus" (change)="onFiltroChange()">
+          <option value="todos">Todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="pago">Pago</option>
+          <option value="vencido">Vencido</option>
+        </select>
+      </div>
+      
+      <div class="filtro-grupo">
+        <label>Cliente:</label>
+        <select [(ngModel)]="filtroCliente" (change)="onFiltroChange()">
+          <option value="">Todos os clientes</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.id">
+            {{ cliente.nome }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filtro-grupo">
+        <label>Pesquisar:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="termoPesquisa" 
+          (input)="onPesquisaChange()"
+          placeholder="Buscar por cliente, valor...">
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-primary" (click)="abrirModalCriar()">
+        💰 Novo Empréstimo
+      </button>
+      
+      <button class="btn-secondary" (click)="limparEmprestimosOrfaos()" title="Limpar empréstimos sem cliente">
+        🧹 Limpar Órfãos
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela de empréstimos -->
+  <div class="tabela-container">
+    <table class="emprestimos-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Valor Original</th>
+          <th>Juros (%)</th>
+          <th>Valor com Juros</th>
+          <th>Data Contrato</th>
+          <th>Próximo Vencimento</th>
+          <th>Status</th>
+          <th>Ciclos Vencidos</th>
+          <th>Saldo Devedor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emprestimo of emprestimosFiltrados">
+          <td>{{ emprestimo.id }}</td>
+          <td>{{ emprestimo.cliente }}</td>
+          <td>{{ formatarMoeda(emprestimo.valorOriginal) }}</td>
+          <td>{{ emprestimo.percentualJuros }}%</td>
+          <td>{{ formatarMoeda(emprestimo.valorComJuros) }}</td>
+          <td>{{ formatarData(emprestimo.dataContrato) }}</td>
+          <td>{{ formatarData(emprestimo.proximoVencimento) }}</td>
+          <td>
+            <span [class]="'status-badge ' + getStatusClass(emprestimo.status)">
+              {{ getStatusText(emprestimo.status) }}
+            </span>
+          </td>
+          <td>{{ emprestimo.ciclosVencidos }}</td>
+          <td>{{ formatarMoeda(emprestimo.saldoDevedor) }}</td>
+          <td class="acoes">
+            <button class="btn-icon" (click)="abrirModalDetalhes(emprestimo)" title="Ver detalhes">
+              👁️
+            </button>
+            <button class="btn-icon" (click)="abrirModalEditar(emprestimo)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-icon danger" (click)="excluirEmprestimo(emprestimo)" title="Excluir">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div *ngIf="emprestimosFiltrados.length === 0" class="sem-dados">
+      <p>Nenhum empréstimo encontrado com os filtros aplicados.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Criar Empréstimo -->
+<div class="modal-overlay" *ngIf="mostrarModalCriar" (click)="fecharModais()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>💰 Novo Empréstimo</h3>
+      <button class="close" (click)="fecharModais()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form [formGroup]="emprestimoForm" (ngSubmit)="criarEmprestimo()">
+        <div class="form-group">
+          <label for="clienteId">Cliente *</label>
+          <select id="clienteId" formControlName="clienteId" required>
+            <option value="">Selecione um cliente</option>
+            <option *ngFor="let cliente of clientes" [value]="cliente.id">
+              {{ cliente.nome }} - CPF: {{ cliente.cpf }}
+            </option>
+          </select>
+          <div *ngIf="emprestimoForm.get('clienteId')?.invalid && emprestimoForm.get('clienteId')?.touched" 
+               class="erro">
+            Cliente é obrigatório
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="valorOriginal">Valor do Empréstimo *</label>
+            <input type="number" id="valorOriginal" formControlName="valorOriginal" 
+                   step="0.01" min="1" placeholder="0.00" required>
+            <div *ngIf="emprestimoForm.get('valorOriginal')?.invalid && emprestimoForm.get('valorOriginal')?.touched" 
+                 class="erro">
+              Valor deve ser maior que zero
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="percentualJuros">Taxa de Juros (%) *</label>
+            <input type="number" id="percentualJuros" formControlName="percentualJuros" 
+                   step="0.01" min="0" max="100" placeholder="0.00" required>
+            <div *ngIf="emprestimoForm.get('percentualJuros')?.invalid && emprestimoForm.get('percentualJuros')?.touched" 
+                 class="erro">
+              Taxa deve estar entre 0% e 100%
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" formControlName="observacoes" 
+                    rows="3" placeholder="Informações adicionais..."></textarea>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="fecharModais()">
+        Cancelar
+      </button>
+      <button type="button" class="btn-primary" (click)="criarEmprestimo()">
+        💰 Criar Empréstimo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Empréstimo -->
+<div class="modal-overlay" *ngIf="mostrarModalEditar" (click)="fecharModais()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>✏️ Editar Empréstimo</h2>
+      <button class="btn-close" (click)="fecharModais()">×</button>
+    </div>
+    
+    <form [formGroup]="emprestimoForm" (ngSubmit)="atualizarEmprestimo()">
+      <div class="form-group">
+        <label for="clienteIdEdit">Cliente *</label>
+        <select id="clienteIdEdit" formControlName="clienteId" required>
+          <option value="">Selecione um cliente</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.id">
+            {{ cliente.nome }} - CPF: {{ cliente.cpf }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="valorOriginalEdit">Valor do Empréstimo *</label>
+          <input type="number" id="valorOriginalEdit" formControlName="valorOriginal" 
+                 step="0.01" min="1" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="percentualJurosEdit">Taxa de Juros (%) *</label>
+          <input type="number" id="percentualJurosEdit" formControlName="percentualJuros" 
+                 step="0.01" min="0" max="100" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="observacoesEdit">Observações</label>
+        <textarea id="observacoesEdit" formControlName="observacoes" rows="3"></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fecharModais()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="!emprestimoForm.valid">
+          💾 Salvar Alterações
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Detalhes Empréstimo -->
+<div class="modal-overlay" *ngIf="mostrarModalDetalhes" (click)="fecharModais()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📋 Detalhes do Empréstimo</h3>
+      <button class="close" (click)="fecharModais()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div *ngIf="emprestimoSelecionado" class="detalhes-content">
+        <div class="detalhes-row">
+          <div class="detalhe-item">
+            <label>ID do Empréstimo:</label>
+            <span>{{ emprestimoSelecionado.id }}</span>
+          </div>
+          
+          <div class="detalhe-item">
+            <label>Cliente:</label>
+            <span>{{ getClienteNome(emprestimoSelecionado.clienteId) }}</span>
+          </div>
+        </div>
+        
+        <div class="detalhes-row">
+          <div class="detalhe-item">
+            <label>Valor Original:</label>
+            <span>{{ formatarMoeda(emprestimoSelecionado.valorOriginal) }}</span>
+          </div>
+          
+          <div class="detalhe-item">
+            <label>Taxa de Juros:</label>
+            <span>{{ emprestimoSelecionado.percentualJuros }}%</span>
+          </div>
+        </div>
+        
+        <div class="detalhes-row">
+          <div class="detalhe-item">
+            <label>Valor com Juros:</label>
+            <span>{{ formatarMoeda(emprestimoSelecionado.valorComJuros) }}</span>
+          </div>
+          
+          <div class="detalhe-item">
+            <label>Ciclos Vencidos:</label>
+            <span>{{ emprestimoSelecionado.ciclosVencidos }}</span>
+          </div>
+        </div>
+        
+        <div class="detalhes-row">
+          <div class="detalhe-item">
+            <label>Data do Contrato:</label>
+            <span>{{ formatarData(emprestimoSelecionado.dataContrato) }}</span>
+          </div>
+          
+          <div class="detalhe-item">
+            <label>Próximo Vencimento:</label>
+            <span>{{ formatarData(emprestimoSelecionado.proximoVencimento) }}</span>
+          </div>
+        </div>
+        
+        <div class="detalhes-row">
+          <div class="detalhe-item">
+            <label>Status:</label>
+            <span [class]="'status-badge ' + getStatusClass(emprestimoSelecionado.status)">
+              {{ getStatusText(emprestimoSelecionado.status) }}
+            </span>
+          </div>
+          
+          <div class="detalhe-item">
+            <label>Observações:</label>
+            <span>{{ emprestimoSelecionado.observacoes || 'Nenhuma observação' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="fecharModais()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>

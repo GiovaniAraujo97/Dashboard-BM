@@ -1,0 +1,340 @@
+<div class="pagamentos-container">
+  <!-- Estatísticas Header -->
+  <div class="estatisticas-header">
+    <div class="stat-card hoje">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <div class="stat-title">Pagamentos Hoje</div>
+        <div class="stat-value">{{ estatisticasPagamentos.pagamentosHoje }}</div>
+        <div class="stat-subtitle">{{ formatCurrency(estatisticasPagamentos.valorHoje) }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card mes">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <div class="stat-title">Pagamentos do Mês</div>
+        <div class="stat-value">{{ estatisticasPagamentos.pagamentosMes }}</div>
+        <div class="stat-subtitle">{{ formatCurrency(estatisticasPagamentos.valorMes) }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card juros">
+      <div class="stat-icon">📈</div>
+      <div class="stat-info">
+        <div class="stat-title">Renovações Recebidas</div>
+        <div class="stat-value">{{ formatCurrency(estatisticasPagamentos.jurosRecebidos) }}</div>
+        <div class="stat-subtitle">este mês</div>
+      </div>
+    </div>
+
+    <div class="stat-card quitacoes">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="stat-title">Quitações</div>
+        <div class="stat-value">{{ estatisticasPagamentos.quitacoes }}</div>
+        <div class="stat-subtitle">este mês</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="controles">
+    <div class="filtros">
+      <div class="filtro-grupo">
+        <label for="filtroCliente">Cliente</label>
+        <select id="filtroCliente" [(ngModel)]="filtroCliente">
+          <option value="">Todos os clientes</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.id">{{ cliente.nome }}</option>
+        </select>
+      </div>
+      
+      <div class="filtro-grupo">
+        <label for="filtroPeriodo">Período</label>
+        <select id="filtroPeriodo" [(ngModel)]="filtroPeriodo">
+          <option value="">Todos</option>
+          <option value="hoje">Hoje</option>
+          <option value="semana">Esta semana</option>
+          <option value="mes">Este mês</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="acoes">
+      <button class="btn-warning" (click)="limparEmprestimosOrfaos()" title="Limpar empréstimos sem cliente válido">
+        🧹 Limpar Órfãos
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela de Empréstimos Pendentes de Pagamento -->
+  <div class="tabela-container">
+    <h3 style="margin-bottom: 20px; color: white;">📋 Todos os Empréstimos - Baixa de Pagamentos</h3>
+    
+    <table class="pagamentos-table" *ngIf="emprestimosAtivos.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Valor Original</th>
+          <th>Valor Total (c/ juros)</th>
+          <th>Vencimento</th>
+          <th>Status/Multa</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emprestimo of emprestimosAtivos">
+          <td>#{{ emprestimo.id }}</td>
+          <td>{{ getClienteNome(emprestimo.clienteId, emprestimo) }}</td>
+          <td class="valor">{{ formatCurrency(emprestimo.valorOriginal) }}</td>
+          <td class="valor" [class.multa]="calcularDiasAtraso(emprestimo) > 0">
+            {{ formatCurrency(calcularValorTotalComMulta(emprestimo)) }}
+            <small *ngIf="calcularMulta(emprestimo) > 0" class="multa-info">
+              (+{{ formatCurrency(calcularMulta(emprestimo)) }} multa)
+            </small>
+          </td>
+          <td [class]="emprestimo.status">
+            {{ formatDate(emprestimo.proximoVencimento) }}
+          </td>
+          <td [class]="emprestimo.status">
+            <span *ngIf="emprestimo.status === 'vencido'" class="atraso">
+              {{ calcularDiasAtraso(emprestimo) }} dias de atraso
+            </span>
+            <span *ngIf="emprestimo.status === 'ativo'" class="prazo">
+              No prazo
+            </span>
+            <span *ngIf="emprestimo.status === 'pago'" class="pago-status">
+              ✅ Pago
+            </span>
+          </td>
+          <td class="acoes">
+            <!-- Só mostrar botões se não estiver pago -->
+            <div *ngIf="emprestimo.status !== 'pago'">
+              <button class="btn-pagamento juros" (click)="abrirModalPagamento('juros', emprestimo)" title="Renovar empréstimo por mais 15 dias">
+                � Renovar ({{ formatCurrency(calcularJurosComMulta(emprestimo)) }})
+              </button>
+              <button class="btn-pagamento total" (click)="abrirModalPagamento('total', emprestimo)" title="Quitar empréstimo">
+                ✅ Quitar ({{ formatCurrency(calcularValorTotalComMulta(emprestimo)) }})
+              </button>
+            </div>
+            <!-- Se já estiver pago, mostrar apenas status -->
+            <div *ngIf="emprestimo.status === 'pago'" class="pago-info">
+              <span class="badge-pago">💚 Quitado</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sem-dados" *ngIf="emprestimosAtivos.length === 0">
+      <p>📝 Nenhum empréstimo encontrado</p>
+      <small>Crie um empréstimo primeiro na aba "Gestão de Empréstimos"</small>
+    </div>
+  </div>
+
+  <!-- Histórico de Pagamentos -->
+  <div class="tabela-container" style="margin-top: 30px;">
+    <h3 style="margin-bottom: 20px; color: white;">📊 Histórico de Pagamentos</h3>
+    
+    <table class="pagamentos-table" *ngIf="pagamentosFiltrados.length > 0">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Empréstimo</th>
+          <th>Tipo</th>
+          <th>Valor</th>
+          <th>Forma</th>
+          <th>Próximo Venc.</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pagamento of pagamentosFiltrados">
+          <td>{{ formatDate(pagamento.dataPagamento) }}</td>
+          <td>{{ getClienteNome(pagamento.clienteId) }}</td>
+          <td>
+            <span *ngIf="getEmprestimo(pagamento.emprestimoId); else emprestimoRemovido">
+              #{{ pagamento.emprestimoId }}
+            </span>
+            <ng-template #emprestimoRemovido>
+              <span class="emprestimo-removido" title="Empréstimo foi removido">
+                #{{ pagamento.emprestimoId }} (removido)
+              </span>
+            </ng-template>
+          </td>
+          <td>
+            <span class="tipo-badge" [class]="'tipo-' + pagamento.tipoPagamento">
+              {{ getTipoPagamentoText(pagamento.tipoPagamento) }}
+            </span>
+          </td>
+          <td class="valor">{{ formatCurrency(pagamento.valor) }}</td>
+          <td>{{ getFormaPagamentoText(pagamento.formaPagamento) }}</td>
+          <td>
+            <span *ngIf="pagamento.proximoVencimento" class="proximo-venc">
+              {{ formatDate(pagamento.proximoVencimento) }}
+            </span>
+            <span *ngIf="!pagamento.proximoVencimento" class="quitado">
+              Quitado
+            </span>
+          </td>
+          <td class="acoes">
+            <button class="btn-icon view" (click)="abrirModalDetalhes(pagamento)" title="Ver detalhes">
+              👁️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sem-dados" *ngIf="pagamentosFiltrados.length === 0">
+      <p>📝 Nenhum pagamento registrado ainda</p>
+      <small>Registre o primeiro pagamento acima</small>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Pagamento -->
+<div class="modal-overlay" *ngIf="mostrarModalPagamento" (click)="fecharModais()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>💰 Registrar Pagamento</h3>
+      <button class="close" (click)="fecharModais()">&times;</button>
+    </div>
+    
+    <form [formGroup]="pagamentoForm" (ngSubmit)="registrarPagamento()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="emprestimoId">Empréstimo *</label>
+          <select id="emprestimoId" formControlName="emprestimoId" (change)="onEmprestimoChange()" required>
+            <option value="">Selecione um empréstimo</option>
+            <option *ngFor="let emprestimo of emprestimosAtivos" [value]="emprestimo.id">
+              #{{ emprestimo.id }} - {{ getClienteNome(emprestimo.clienteId) }} - {{ formatCurrency(emprestimo.valorOriginal) }}
+              - Vence: {{ formatDate(emprestimo.proximoVencimento) }}
+            </option>
+          </select>
+          <small *ngIf="emprestimosAtivos.length === 0" style="color: #FFB74D;">
+            Nenhum empréstimo ativo encontrado. Crie um empréstimo primeiro.
+          </small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tipoPagamento">Tipo de Pagamento *</label>
+            <select id="tipoPagamento" formControlName="tipoPagamento" (change)="onTipoPagamentoChange()" required>
+              <option value="juros">Renovar (15 dias)</option>
+              <option value="total">Quitação Total</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="valor">Valor *</label>
+            <input type="number" id="valor" formControlName="valor" 
+                   step="0.01" min="0.01" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="formaPagamento">Forma de Pagamento *</label>
+            <select id="formaPagamento" formControlName="formaPagamento" required>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="pix">PIX</option>
+              <option value="transferencia">Transferência</option>
+              <option value="cartao">Cartão</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="numeroTransacao">Nº Transação</label>
+            <input type="text" id="numeroTransacao" formControlName="numeroTransacao" 
+                   placeholder="ID da transação (opcional)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" formControlName="observacoes" rows="3"
+                    placeholder="Informações adicionais sobre o pagamento"></textarea>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="fecharModais()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="pagamentoForm.invalid">
+          💰 Registrar Pagamento
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Detalhes do Pagamento -->
+<div class="modal-overlay" *ngIf="mostrarModalDetalhes" (click)="fecharModais()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📄 Detalhes do Pagamento</h3>
+      <button class="close" (click)="fecharModais()">&times;</button>
+    </div>
+    
+    <div class="modal-body" *ngIf="pagamentoSelecionado">
+      <div class="detalhes-grid">
+        <div class="detalhe-item">
+          <label>Data do Pagamento:</label>
+          <span>{{ formatDate(pagamentoSelecionado.dataPagamento) }}</span>
+        </div>
+
+        <div class="detalhe-item">
+          <label>Cliente:</label>
+          <span>{{ getClienteNome(pagamentoSelecionado.clienteId) }}</span>
+        </div>
+
+        <div class="detalhe-item">
+          <label>Empréstimo:</label>
+          <span>#{{ pagamentoSelecionado.emprestimoId }}</span>
+        </div>
+
+        <div class="detalhe-item">
+          <label>Tipo de Pagamento:</label>
+          <span class="tipo-badge" [class]="'tipo-' + pagamentoSelecionado.tipoPagamento">
+            {{ getTipoPagamentoText(pagamentoSelecionado.tipoPagamento) }}
+          </span>
+        </div>
+
+        <div class="detalhe-item">
+          <label>Valor Pago:</label>
+          <span class="valor-destaque">{{ formatCurrency(pagamentoSelecionado.valor) }}</span>
+        </div>
+
+        <div class="detalhe-item">
+          <label>Forma de Pagamento:</label>
+          <span>{{ getFormaPagamentoText(pagamentoSelecionado.formaPagamento) }}</span>
+        </div>
+
+        <div class="detalhe-item" *ngIf="pagamentoSelecionado.numeroTransacao">
+          <label>Nº Transação:</label>
+          <span>{{ pagamentoSelecionado.numeroTransacao }}</span>
+        </div>
+
+        <div class="detalhe-item" *ngIf="pagamentoSelecionado.proximoVencimento">
+          <label>Próximo Vencimento:</label>
+          <span class="proximo-venc">{{ formatDate(pagamentoSelecionado.proximoVencimento) }}</span>
+        </div>
+
+        <div class="detalhe-item full-width" *ngIf="pagamentoSelecionado.observacoes">
+          <label>Observações:</label>
+          <span>{{ pagamentoSelecionado.observacoes }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="fecharModais()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>

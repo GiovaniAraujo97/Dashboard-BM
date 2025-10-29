@@ -1,0 +1,51 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-header">
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <span class="toggle-icon">{{ isCollapsed ? '▶' : '◀' }}</span>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li 
+        *ngFor="let item of menuItems" 
+        class="nav-item"
+        [class.active]="item.active"
+      >
+        <a 
+          class="nav-link"
+          (click)="selectMenuItem(item)"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+          <span 
+            class="nav-badge" 
+            *ngIf="item.badge && item.badge > 0 && !isCollapsed"
+          >
+            {{ item.badge }}
+          </span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Logo da Empresa -->
+  <div class="sidebar-logo" *ngIf="!isCollapsed">
+    <div class="logo-container">
+      <div class="logo-icon">🏦</div>
+      <div class="logo-text">
+        <h3 class="company-name">BM Empréstimos</h3>
+        <p class="company-tagline">Sistema Quinzenal</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="footer-content">
+      <div class="version-info">
+        <span class="version-label">Versão</span>
+        <span class="version-number">2.0.0</span>
+      </div>
+    </div>
+  </div>
+</aside>

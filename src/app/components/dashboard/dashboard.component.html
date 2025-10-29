@@ -1,0 +1,87 @@
+<div class="app-layout">
+  <div class="main-content">
+    <app-header 
+      [currentView]="currentView"
+      (novoEmprestimo)="onNovoEmprestimo()"
+      (novoCliente)="onNovoCliente()"
+      (registrarPagamento)="onRegistrarPagamento()"
+      (voltarDashboard)="onVoltarDashboard()"
+      (navegarPara)="onViewChange($event)">
+    </app-header>
+    
+    <div class="content-wrapper">
+      <app-sidebar (viewChange)="onViewChange($event)"></app-sidebar>
+      
+      <main class="dashboard-main">
+        <div class="container" *ngIf="currentView === 'dashboard'">
+          <div class="page-header">
+            <h1 class="page-title">Dashboard Financeiro</h1>
+            <p class="page-subtitle">Gestão de Empréstimos Quinzenais</p>
+          </div>
+
+          <section class="metrics-section">
+            <div class="metrics-grid">
+              <app-metric-card 
+                *ngFor="let metric of metrics" 
+                [metric]="metric">
+              </app-metric-card>
+            </div>
+          </section>
+
+          <section class="charts-section">
+            <div class="charts-grid">
+              <div class="chart-card">
+                <h3>Status dos Empréstimos</h3>
+                <div class="status-overview">
+                  <div class="status-item">
+                    <span class="status-dot active"></span>
+                    <span>Ativos: {{ resumoEmprestimos.ativos }}</span>
+                  </div>
+                  <div class="status-item">
+                    <span class="status-dot pending"></span>
+                    <span>Pendentes: {{ resumoEmprestimos.pendentes }}</span>
+                  </div>
+                  <div class="status-item">
+                    <span class="status-dot overdue"></span>
+                    <span>Em Atraso: {{ resumoEmprestimos.emAtraso }}</span>
+                  </div>
+                  <div class="status-item">
+                    <span class="status-dot completed"></span>
+                    <span>Quitados: {{ resumoEmprestimos.quitados }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <h3>Últimos Empréstimos</h3>
+                <div class="recent-loans">
+                  <div *ngIf="emprestimos.length === 0" class="empty-state">
+                    <p>Nenhum empréstimo cadastrado ainda.</p>
+                    <button class="btn-primary" (click)="onNovoEmprestimo()">
+                      <i class="fas fa-plus"></i>
+                      Criar Primeiro Empréstimo
+                    </button>
+                  </div>
+                  <div *ngFor="let emprestimo of emprestimos | slice:0:5" class="loan-item">
+                    <div class="loan-info">
+                      <span class="loan-client">Cliente ID: {{ emprestimo.clienteId }}</span>
+                      <span class="loan-amount">{{ formatarMoeda(emprestimo.valorOriginal) }}</span>
+                    </div>
+                    <span class="loan-status" [class]="'status-' + emprestimo.status">
+                      {{ emprestimo.status | titlecase }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Outros componentes baseados na view -->
+        <app-clientes *ngIf="currentView === 'clientes'"></app-clientes>
+        <app-emprestimos *ngIf="currentView === 'emprestimos'"></app-emprestimos>
+        <app-pagamentos *ngIf="currentView === 'pagamentos'"></app-pagamentos>
+      </main>
+    </div>
+  </div>
+</div>

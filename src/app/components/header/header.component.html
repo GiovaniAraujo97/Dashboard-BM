@@ -1,0 +1,238 @@
+<header class="header">
+  <div class="header-container">
+    <div class="header-left">
+      <!-- Botão Voltar (aparece no mobile quando não está no dashboard) -->
+      <button class="btn-voltar" 
+              *ngIf="mostrarBotaoVoltar" 
+              (click)="onVoltarDashboard()">
+        <span class="voltar-icon">←</span>
+        <span class="voltar-text">{{ getViewTitle() }}</span>
+      </button>
+
+      <div class="logo" [class.logo-compacto]="mostrarBotaoVoltar">
+        <h1>BM Empréstimos</h1>
+        <span class="company-subtitle">Empréstimos Quinzenais</span>
+      </div>
+    </div>
+
+    <!-- Menu Desktop -->
+    <div class="header-center">
+      <div class="quick-actions">
+        <button class="btn-action primary" (click)="onNovoEmprestimo()">
+          <span class="action-icon">💰</span>
+          <span class="action-text">Novo Empréstimo</span>
+        </button>
+        <button class="btn-action secondary" (click)="onNovoCliente()">
+          <span class="action-icon">👤</span>
+          <span class="action-text">Novo Cliente</span>
+        </button>
+        <button class="btn-action success" (click)="onRegistrarPagamento()">
+          <span class="action-icon">💳</span>
+          <span class="action-text">Pagamento</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Botão Hambúrguer Mobile (no canto direito) -->
+      <button class="menu-mobile-btn" (click)="toggleMenuMobile()">
+        <span class="hamburger" [class.active]="menuMobileAberto">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+
+      <!-- Notificações -->
+      <div class="notifications">
+        <button class="notification-btn" (click)="toggleNotifications()">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge" *ngIf="unreadNotifications > 0">
+            {{ unreadNotifications }}
+          </span>
+        </button>
+
+        <!-- Backdrop para mobile -->
+        <div class="notifications-backdrop" 
+             *ngIf="mostrarNotificacoes" 
+             (click)="fecharNotificacoes()"></div>
+
+        <!-- Dropdown de Notificações -->
+        <div class="notifications-dropdown" *ngIf="mostrarNotificacoes" (click)="$event.stopPropagation()">
+          <div class="notifications-header">
+            <h3>Notificações</h3>
+            <button class="close-btn" (click)="fecharNotificacoes()">×</button>
+          </div>
+          
+          <div class="notifications-content">
+            <div *ngIf="notificacoes.length === 0" class="no-notifications">
+              <span class="icon">✅</span>
+              <p>Nenhuma notificação pendente!</p>
+              <small>Todos os empréstimos estão em dia</small>
+            </div>
+
+            <div *ngFor="let notificacao of notificacoes" 
+                 class="notification-item"
+                 [class]="'urgencia-' + notificacao.urgencia">
+              
+              <div class="notification-icon">
+                {{ getIconeNotificacao(notificacao.tipo) }}
+              </div>
+              
+              <div class="notification-content">
+                <div class="notification-header">
+                  <strong>{{ notificacao.cliente }}</strong>
+                  <span class="notification-value">{{ formatarMoeda(notificacao.valor) }}</span>
+                </div>
+                
+                <p class="notification-message">{{ notificacao.message }}</p>
+                
+                <div class="notification-footer">
+                  <small class="notification-date">
+                    Vencimento: {{ formatarData(notificacao.emprestimo.proximoVencimento) }}
+                  </small>
+                  <span class="notification-urgency" 
+                        [class]="'badge-' + notificacao.urgencia">
+                    {{ notificacao.urgencia === 'alta' ? 'URGENTE' : 
+                       notificacao.urgencia === 'media' ? 'ATENÇÃO' : 'INFO' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="notifications-footer" *ngIf="notificacoes.length > 0">
+            <button class="btn-action-notification" (click)="irParaPagamentos()">
+              💰 Ver Todos os Pagamentos
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-profile">
+        <button class="user-btn" (click)="toggleUserMenu()">
+          <img 
+            [src]="currentUser.avatar" 
+            [alt]="currentUser.name"
+            class="user-avatar"
+            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTIwIDIwQzIyLjc2MTQgMjAgMjUgMTcuNzYxNCAyNSAxNUMyNSAxMi4yMzg2IDIyLjc2MTQgMTAgMjAgMTBDMTcuMjM4NiAxMCAxNSAxMi4yMzg2IDE1IDE1QzE1IDE3Ljc2MTQgMTcuMjM4NiAyMCAyMCAyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDIyLjVDMTUuODU3OSAyMi41IDEyLjUgMjUuODU3OSAxMi41IDMwVjMyLjVDMTIuNSAzMy4zMjg0IDEzLjE3MTYgMzQgMTQgMzRIMjZDMjYuODI4NCAzNCAyNy41IDMzLjMyODQgMjcuNSAzMlYzMEMyNy41IDI1Ljg1NzkgMjQuMTQyMSAyMi41IDIwIDIyLjVaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo='"
+          >
+          <div class="user-info">
+            <span class="user-name">{{ currentUser.name }}</span>
+            <span class="user-role">{{ currentUser.role }}</span>
+          </div>
+          <span class="dropdown-arrow">▼</span>
+        </button>
+
+        <!-- Dropdown do Usuário -->
+        <div class="user-dropdown" *ngIf="mostrarUserDropdown" (click)="$event.stopPropagation()">
+          <div class="user-dropdown-content">
+            <div class="user-dropdown-header">
+              <img 
+                [src]="currentUser.avatar" 
+                [alt]="currentUser.name"
+                class="user-avatar-large"
+                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTIwIDIwQzIyLjc2MTQgMjAgMjUgMTcuNzYxNCAyNSAxNUMyNSAxMi4yMzg2IDIyLjc2MTQgMTAgMjAgMTBDMTcuMjM4NiAxMCAxNSAxMi4yMzg2IDE1IDE1QzE1IDE3Ljc2MTQgMTcuMjM4NiAyMCAyMCAyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDIyLjVDMTUuODU3OSAyMi41IDEyLjUgMjUuODU3OSAxMi41IDMwVjMyLjVDMTIuNSAzMy4zMjg0IDEzLjE3MTYgMzQgMTQgMzRIMjZDMjYuODI4NCAzNCAyNy41IDMzLjMyODQgMjcuNSAzMlYzMEMyNy41IDI1Ljg1NzkgMjQuMTQyMSAyMi41IDIwIDIyLjVaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo='"
+              >
+              <div class="user-dropdown-info">
+                <span class="user-name">{{ currentUser.name }}</span>
+                <span class="user-role">{{ currentUser.role }}</span>
+              </div>
+            </div>
+            
+            <div class="user-dropdown-actions">
+              <button class="dropdown-action-btn" (click)="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair do Sistema</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Mobile -->
+  <div class="menu-mobile" *ngIf="menuMobileAberto" (click)="$event.stopPropagation()">
+    <div class="menu-mobile-content">
+      <!-- Navegação Mobile -->
+      <div class="mobile-navigation">
+        <h4>📱 Navegação</h4>
+        <div class="mobile-nav-list">
+          <button *ngFor="let item of menuMobileOptions" 
+                  class="mobile-nav-btn"
+                  [class.active]="currentView === item.id"
+                  (click)="navegarParaTela(item.id)">
+            <span class="mobile-nav-icon">{{ item.icon }}</span>
+            <span class="mobile-nav-text">{{ item.label }}</span>
+            <span class="mobile-nav-arrow" *ngIf="currentView === item.id">→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="mobile-separator"></div>
+
+      <!-- Ações Principais -->
+      <div class="mobile-actions">
+        <h4>⚡ Ações Rápidas</h4>
+        <button class="mobile-btn primary" (click)="onNovoEmprestimo(); fecharMenuMobile()">
+          <span class="mobile-icon">💰</span>
+          <span class="mobile-text">Novo Empréstimo</span>
+        </button>
+        
+        <button class="mobile-btn secondary" (click)="onNovoCliente(); fecharMenuMobile()">
+          <span class="mobile-icon">👤</span>
+          <span class="mobile-text">Novo Cliente</span>
+        </button>
+        
+        <button class="mobile-btn success" (click)="onRegistrarPagamento(); fecharMenuMobile()">
+          <span class="mobile-icon">💳</span>
+          <span class="mobile-text">Registrar Pagamento</span>
+        </button>
+      </div>
+
+      <!-- Separador -->
+      <div class="mobile-separator"></div>
+
+      <!-- Notificações Mobile -->
+      <div class="mobile-notifications" *ngIf="notificacoes.length > 0">
+        <h4>🔔 Notificações ({{ unreadNotifications }})</h4>
+        
+        <div class="mobile-notification-list">
+          <div *ngFor="let notificacao of notificacoes.slice(0, 3)" 
+               class="mobile-notification-item"
+               [class]="'urgencia-' + notificacao.urgencia">
+            
+            <div class="mobile-notification-header">
+              <span class="mobile-notification-icon">{{ getIconeNotificacao(notificacao.tipo) }}</span>
+              <strong>{{ notificacao.cliente }}</strong>
+              <span class="mobile-notification-value">{{ formatarMoeda(notificacao.valor) }}</span>
+            </div>
+            
+            <p class="mobile-notification-message">{{ notificacao.message }}</p>
+          </div>
+        </div>
+
+        <button class="mobile-btn-notification" (click)="irParaPagamentos(); fecharMenuMobile()">
+          Ver Todos os Pagamentos
+        </button>
+      </div>
+
+      <!-- User Info Mobile -->
+      <div class="mobile-user-info">
+        <div class="mobile-user-avatar">
+          <img [src]="currentUser.avatar" [alt]="currentUser.name">
+        </div>
+        <div class="mobile-user-details">
+          <span class="mobile-user-name">{{ currentUser.name }}</span>
+          <span class="mobile-user-role">{{ currentUser.role }}</span>
+        </div>
+        <button class="mobile-logout-btn" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
