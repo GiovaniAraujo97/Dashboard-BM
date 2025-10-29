@@ -77,22 +77,9 @@ export class StorageService {
   // Sincronizar com GitHub Gist
   private async syncFromRemote(): Promise<void> {
     try {
-      const response = await fetch(this.GIST_READ_ENDPOINT);
-      if (response.ok) {
-        const json = await response.json();
-        const fileContent = json.content;
-        if (fileContent) {
-          const remoteData: AppData = JSON.parse(fileContent);
-          const localData = this.dataSubject.value;
-
-          // Sempre sobrescrever o dado local pelo remoto ao sincronizar
-          this.dataSubject.next(remoteData);
-          this.saveToLocal(remoteData);
-          console.log('Dados sincronizados do servidor (via proxy)');
-        }
-      } else {
-        console.warn('Não foi possível ler o Gist via proxy:', response.status);
-      }
+      // Ao sincronizar, sempre sobrescreve o Gist com o dado local
+      await this.syncToRemote(this.dataSubject.value);
+      console.log('Dado local enviado para o Gist e sincronizado globalmente.');
     } catch (error) {
       console.error('Erro ao sincronizar dados remotos (proxy):', error);
     }
