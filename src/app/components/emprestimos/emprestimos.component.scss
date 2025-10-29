@@ -129,7 +129,7 @@
 
     .sem-dados { text-align: center; padding: 40px; opacity: 0.7; p { margin: 0; font-size: 1.1rem; } }
   }
-}
+/* Removido '}' extra que causava erro de build */
 
 .btn-primary {
   background: linear-gradient(135deg, #4CAF50, #45a049);
