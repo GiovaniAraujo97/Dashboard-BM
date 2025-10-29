@@ -134,6 +134,7 @@ export class StorageService {
   }
 
   async addCliente(cliente: Cliente): Promise<void> {
+    await this.syncFromRemote(); // Garante dado mais recente
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
@@ -145,10 +146,11 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
-    await this.syncFromRemote(); // Força reload global
+    await this.syncFromRemote();
   }
 
   async updateCliente(cliente: Cliente): Promise<void> {
+    await this.syncFromRemote();
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
@@ -164,6 +166,7 @@ export class StorageService {
   }
 
   async removeCliente(id: number): Promise<void> {
+    await this.syncFromRemote();
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
@@ -179,6 +182,7 @@ export class StorageService {
   }
 
   async addEmprestimo(emprestimo: Emprestimo): Promise<void> {
+    await this.syncFromRemote();
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
@@ -194,6 +198,7 @@ export class StorageService {
   }
 
   async updateEmprestimo(emprestimo: Emprestimo): Promise<void> {
+    await this.syncFromRemote();
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
@@ -209,6 +214,7 @@ export class StorageService {
   }
 
   async removeEmprestimo(id: number): Promise<void> {
+    await this.syncFromRemote();
     const currentData = this.getCurrentData();
     const newData: AppData = {
       ...currentData,
