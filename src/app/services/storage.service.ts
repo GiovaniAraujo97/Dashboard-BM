@@ -15,8 +15,17 @@ interface AppData {
 export class StorageService {
   // Note: token removed from client. We use Netlify serverless functions as a secure proxy.
   private readonly GIST_ID = '004c3f9e832b7a8ad79fdb6a7e1796d5'; // Gist ID público
-  private readonly GIST_READ_ENDPOINT = '/.netlify/functions/gist-read';
-  private readonly GIST_WRITE_ENDPOINT = '/.netlify/functions/gist-write';
+  private readonly GIST_READ_ENDPOINT = this.getGistEndpoint('gist-read');
+  private readonly GIST_WRITE_ENDPOINT = this.getGistEndpoint('gist-write');
+
+  private getGistEndpoint(fn: 'gist-read' | 'gist-write') {
+    // Usa endpoint absoluto em produção (Netlify), relativo em dev/local
+    const isProd = window.location.hostname.includes('netlify.app');
+    if (isProd) {
+      return `https://bm-emprestimos.netlify.app/.netlify/functions/${fn}`;
+    }
+    return `/.netlify/functions/${fn}`;
+  }
   private readonly LOCAL_STORAGE_KEY = 'bm-emprestimos-data';
   private readonly SYNC_INTERVAL = 30000; // 30 segundos
 
@@ -24,12 +33,12 @@ export class StorageService {
   public data$ = this.dataSubject.asObservable();
 
   constructor() {
+    // Sempre buscar do Gist ao abrir a página
+    this.syncFromRemote();
     // Inicializar sincronização automática
     this.startAutoSync();
-    
-    // Carregar dados iniciais
+    // Carregar dados locais (fallback)
     this.loadFromLocal();
-    this.syncFromRemote();
   }
 
   private getInitialData(): AppData {
@@ -139,6 +148,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote(); // Força reload global
   }
 
   async updateCliente(cliente: Cliente): Promise<void> {
@@ -153,6 +163,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote();
   }
 
   async removeCliente(id: number): Promise<void> {
@@ -167,6 +178,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote();
   }
 
   async addEmprestimo(emprestimo: Emprestimo): Promise<void> {
@@ -181,6 +193,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote();
   }
 
   async updateEmprestimo(emprestimo: Emprestimo): Promise<void> {
@@ -195,6 +208,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote();
   }
 
   async removeEmprestimo(id: number): Promise<void> {
@@ -209,6 +223,7 @@ export class StorageService {
     this.dataSubject.next(newData);
     this.saveToLocal(newData);
     await this.syncToRemote(newData);
+    await this.syncFromRemote();
   }
 
   // Método para forçar sincronização manual
