@@ -13,7 +13,9 @@ try {
 
   const supabaseUrl = readEnv('SUPABASE_URL', '');
   const supabaseKey = readEnv('SUPABASE_ANON_KEY', '');
-
+  // Diagnostic logs: only report presence (true/false), never print secret values.
+  console.log('[inject-env] SUPABASE_URL set?', !!supabaseUrl);
+  console.log('[inject-env] SUPABASE_ANON_KEY set?', !!supabaseKey);
   if (!supabaseUrl || !supabaseKey) {
     console.warn('[inject-env] Warning: SUPABASE_URL or SUPABASE_ANON_KEY not set. Using empty values.');
   }
