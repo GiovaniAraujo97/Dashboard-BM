@@ -1,27 +1,18 @@
 [build]
   command = "npm run build"
   publish = "dist/dashboard-bm"
+  environment = { NODE_OPTIONS = "--max_old_space_size=4096" }
 
 [context.production.environment]
-  # These should be set in Netlify UI (Site settings → Build & deploy → Environment)
+  # Set these in the Netlify UI; placeholders here for clarity
   SUPABASE_URL = ""
   SUPABASE_ANON_KEY = ""
 
 [dev]
   command = "npm start"
-
-[build.environment]
-  # keep NODE_OPTIONS small if needed
-  NODE_OPTIONS = "--max_old_space_size=4096"
-
-[functions]
-  directory = "netlify/functions"
-[build]
-  functions = "netlify/functions"
-
-[dev]
-  command = "npm run start"
   port = 8888
 
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
+  directory = "netlify/functions"
