@@ -27,12 +27,23 @@
           <td>{{ formatDate(e.proximoVencimento) }}</td>
           <td>{{ e.status }}</td>
           <td class="acoes">
-            <!-- Mensagem de lembrete/padrão -->
             <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
-            <!-- Mensagem específica para renovar -->
-            <a class="btn-small" [href]="getWhatsAppLinkForAction(e, 'renovar')" target="_blank" *ngIf="getWhatsAppLinkForAction(e, 'renovar')" title="Enviar mensagem para Renovação">🔁</a>
-            <!-- Mensagem específica para quitação -->
-            <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e, 'quitar')" target="_blank" *ngIf="getWhatsAppLinkForAction(e, 'quitar')" title="Enviar mensagem para Quitar">✅</a>
+
+            <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
+
+            <div *ngIf="activePaymentId === e.id" class="payment-options">
+              <div class="amounts">
+                <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
+                <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+              </div>
+
+              <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+
+              <div class="payment-actions">
+                <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
+                <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>

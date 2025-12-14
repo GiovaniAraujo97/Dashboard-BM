@@ -13,6 +13,8 @@ import { FormsModule } from '@angular/forms';
 export class CobrancaComponent implements OnInit {
   emprestimos: Emprestimo[] = [];
   clientes: Cliente[] = [];
+  activePaymentId: number | null = null;
+  private pixKeys: { [id: number]: string } = {};
 
   constructor(private emprestimoService: EmprestimoService) {}
 
@@ -112,27 +114,41 @@ export class CobrancaComponent implements OnInit {
     return 'pix-' + Math.random().toString(36).slice(2, 10).toUpperCase();
   }
 
-  private buildActionMessage(emprestimo: Emprestimo, action: 'renovar' | 'quitar'): string {
+  private buildActionMessage(emprestimo: Emprestimo, action: 'juros' | 'total'): string {
     const cliente = this.clientes.find(c => c.id === emprestimo.clienteId);
     const nome = cliente?.nome || emprestimo.cliente || 'Cliente';
-    const valor = this.formatCurrency(this.calcularValorTotalComMulta(emprestimo));
     const venc = this.formatDate(emprestimo.proximoVencimento);
-    const pix = this.generateRandomPixKey();
+    const pix = this.getPixKeyFor(emprestimo);
 
-    if (action === 'renovar') {
-      return `Olá ${nome}, confirme a renovação do seu empréstimo com vencimento em ${venc}. Valor do ciclo: ${valor}. Para pagamento via PIX, use a chave: ${pix}. Obrigado.`;
+    if (action === 'juros') {
+      const valorJuros = this.formatCurrency(this.calcularJurosComMulta(emprestimo));
+      return `Olá ${nome}, confirmação de pagamento parcial (juros) referente ao empréstimo com vencimento em ${venc}. Valor: ${valorJuros}. Pagamento via PIX: ${pix}. Obrigado.`;
     }
 
-    // quitar
-    return `Olá ${nome}, confirmamos a quitação do seu empréstimo com vencimento em ${venc}. Valor total: ${valor}. Para transferência via PIX, utilize a chave: ${pix}. Obrigado.`;
+    const valorTotal = this.formatCurrency(this.calcularValorTotalComMulta(emprestimo));
+    return `Olá ${nome}, confirmação de quitação total do empréstimo com vencimento em ${venc}. Valor total: ${valorTotal}. PIX para transferência: ${pix}. Obrigado.`;
   }
 
-  getWhatsAppLinkForAction(emprestimo: Emprestimo, action: 'renovar' | 'quitar'): string | null {
+  getWhatsAppLinkForAction(emprestimo: Emprestimo, action: 'juros' | 'total'): string | null {
     const cliente = this.clientes.find(c => c.id === emprestimo.clienteId);
     const raw = cliente?.telefone || '';
     const phone = this.formatPhoneForWhatsApp(raw);
     if (!phone) return null;
     const msg = this.buildActionMessage(emprestimo, action);
     return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  }
+
+  togglePaymentOptions(id: number) {
+    if (this.activePaymentId === id) this.activePaymentId = null;
+    else {
+      this.activePaymentId = id;
+      if (!this.pixKeys[id]) this.pixKeys[id] = this.generateRandomPixKey();
+    }
+  }
+
+  getPixKeyFor(emprestimo: Emprestimo): string {
+    const id = emprestimo.id;
+    if (!this.pixKeys[id]) this.pixKeys[id] = this.generateRandomPixKey();
+    return this.pixKeys[id];
   }
 }
