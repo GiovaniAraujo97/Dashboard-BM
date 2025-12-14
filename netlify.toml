@@ -3,10 +3,7 @@
   publish = "dist/dashboard-bm/browser"
   environment = { NODE_OPTIONS = "--max_old_space_size=4096" }
 
-[context.production.environment]
-  # Set these in the Netlify UI; placeholders here for clarity
-  SUPABASE_URL = ""
-  SUPABASE_ANON_KEY = ""
+
 
 [dev]
   command = "npm start"
