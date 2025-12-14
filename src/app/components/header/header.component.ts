@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { EmprestimoService, Emprestimo, Cliente } from '../../services/dashboard.service';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 interface NotificacaoEmprestimo {
   id: number;
@@ -64,7 +65,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.notificacoes.filter(n => n.urgencia === 'alta').length;
   }
 
-  constructor(private emprestimoService: EmprestimoService, private router: Router) {}
+  constructor(private emprestimoService: EmprestimoService, private router: Router, private auth: AuthService) {}
 
   ngOnInit() {
     // Carregar dados e monitorar mudanças
@@ -287,7 +288,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.mostrarUserDropdown = false;
   }
 
-  logout() {
+  async logout() {
+    try {
+      await this.auth.signOut();
+    } catch (err) {
+      console.warn('Erro ao deslogar via Supabase:', err);
+    }
     localStorage.removeItem('authenticated');
     this.router.navigate(['/login']);
   }

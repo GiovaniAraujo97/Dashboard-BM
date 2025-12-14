@@ -10,10 +10,26 @@
 
     <div class="login-form">
       <div class="form-group">
-        <label for="senha">Senha de Acesso</label>
+        <label for="email">E-mail</label>
         <div class="input-wrapper">
-          <input 
-            type="password" 
+          <input
+            type="email"
+            id="email"
+            [(ngModel)]="email"
+            placeholder="seu@exemplo.com"
+            [disabled]="carregando"
+            (keydown)="onEnterPress($event)"
+            class="form-input"
+          >
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <div class="input-wrapper">
+          <input
+            type="password"
             id="senha"
             [(ngModel)]="senha"
             placeholder="Digite sua senha"
@@ -21,31 +37,37 @@
             (keydown)="onEnterPress($event)"
             class="form-input"
             [class.error]="senhaIncorreta"
-          >
+          />
           <i class="fas fa-lock input-icon"></i>
         </div>
-        
+
         <div class="error-message" [class.show]="senhaIncorreta">
           <i class="fas fa-exclamation-triangle"></i>
-          Senha incorreta. Tente novamente.
+          Credenciais inválidas. Tente novamente.
         </div>
       </div>
 
-      <button 
-        type="button" 
-        class="btn-login"
-        [disabled]="!senha.trim() || carregando"
-        (click)="fazerLogin()"
-      >
-        <span *ngIf="!carregando">
-          <i class="fas fa-sign-in-alt"></i>
-          Acessar Sistema
-        </span>
-        <span *ngIf="carregando" class="loading">
-          <i class="fas fa-spinner fa-spin"></i>
-          Verificando...
-        </span>
-      </button>
+      <div class="actions-row">
+        <button
+          type="button"
+          class="btn-login"
+          [disabled]="(!email.trim() || !senha.trim()) || carregando"
+          (click)="fazerLogin()"
+        >
+          <span *ngIf="!carregando">
+            <i class="fas fa-sign-in-alt"></i>
+            {{ modoCadastro ? 'Cadastrar' : 'Acessar' }}
+          </span>
+          <span *ngIf="carregando" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Processando...
+          </span>
+        </button>
+
+        <button type="button" class="btn-secondary" (click)="toggleModo()">
+          {{ modoCadastro ? 'Já tenho conta' : 'Criar conta' }}
+        </button>
+      </div>
     </div>
 
     <div class="login-footer">

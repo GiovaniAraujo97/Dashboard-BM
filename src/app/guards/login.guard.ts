@@ -1,21 +1,28 @@
+@Injectable({
+  providedIn: 'root'
+})
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginGuard implements CanActivate {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private auth: AuthService) {}
 
-  canActivate(): boolean {
-    const isAuthenticated = localStorage.getItem('authenticated') === 'true';
-    
-    if (isAuthenticated) {
-      this.router.navigate(['/dashboard']);
-      return false;
+  async canActivate(): Promise<boolean> {
+    try {
+      const session = await this.auth.getSession();
+      const isAuthenticated = !!session;
+      if (isAuthenticated) {
+        this.router.navigate(['/dashboard']);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      return true;
     }
-    
-    return true;
   }
 }
