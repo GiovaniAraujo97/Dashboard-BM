@@ -14,12 +14,11 @@ interface AppData {
 })
 export class StorageService {
   // Note: token removed from client. We use Netlify serverless functions as a secure proxy.
-  private readonly GIST_ID = '004c3f9e832b7a8ad79fdb6a7e1796d5'; // Gist ID público
-  private readonly GIST_READ_ENDPOINT = this.getGistEndpoint('gist-read');
-  private readonly GIST_WRITE_ENDPOINT = this.getGistEndpoint('gist-write');
+  // Quando migrarmos para DB, as funções Netlify passam a ser `db-read` e `db-write`.
+  private readonly BACKEND_READ_ENDPOINT = this.getBackendEndpoint('db-read');
+  private readonly BACKEND_WRITE_ENDPOINT = this.getBackendEndpoint('db-write');
 
-  private getGistEndpoint(fn: 'gist-read' | 'gist-write') {
-    // Usa endpoint absoluto em produção (Netlify), relativo em dev/local
+  private getBackendEndpoint(fn: 'db-read' | 'db-write') {
     const isProd = window.location.hostname.includes('netlify.app');
     if (isProd) {
       return `https://bm-emprestimos.netlify.app/.netlify/functions/${fn}`;
@@ -77,18 +76,31 @@ export class StorageService {
   // Sincronizar com GitHub Gist
   private async syncFromRemote(): Promise<void> {
     try {
-      // Ao sincronizar, sempre sobrescreve o Gist com o dado local
+      // Fluxo: enviar dado local -> ler do backend -> sobrescrever local
       await this.syncToRemote(this.dataSubject.value);
-      console.log('Dado local enviado para o Gist e sincronizado globalmente.');
+      // ler de volta do backend
+      const resp = await fetch(this.BACKEND_READ_ENDPOINT);
+      if (resp.ok) {
+        const json = await resp.json();
+        const fileContent = json.content;
+        if (fileContent) {
+          const remoteData: AppData = JSON.parse(fileContent);
+          this.dataSubject.next(remoteData);
+          this.saveToLocal(remoteData);
+          console.log('Dados sincronizados do servidor (via proxy)');
+        }
+      } else {
+        console.warn('Não foi possível ler do backend:', resp.status);
+      }
     } catch (error) {
       console.error('Erro ao sincronizar dados remotos (proxy):', error);
     }
   }
 
-  // Enviar dados para GitHub Gist
+  // Enviar dados para backend (Supabase via Netlify function)
   private async syncToRemote(data: AppData): Promise<void> {
     try {
-      const response = await fetch(this.GIST_WRITE_ENDPOINT, {
+      const response = await fetch(this.BACKEND_WRITE_ENDPOINT, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
