@@ -1,4 +1,22 @@
 [build]
+  command = "npm run build"
+  publish = "dist/dashboard-bm"
+
+[context.production.environment]
+  # These should be set in Netlify UI (Site settings → Build & deploy → Environment)
+  SUPABASE_URL = ""
+  SUPABASE_ANON_KEY = ""
+
+[dev]
+  command = "npm start"
+
+[build.environment]
+  # keep NODE_OPTIONS small if needed
+  NODE_OPTIONS = "--max_old_space_size=4096"
+
+[functions]
+  directory = "netlify/functions"
+[build]
   functions = "netlify/functions"
 
 [dev]
