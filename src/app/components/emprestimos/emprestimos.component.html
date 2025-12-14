@@ -95,6 +95,7 @@
           <th>ID</th>
           <th>Cliente</th>
           <th>Valor Original</th>
+          <th>Frequência</th>
           <th>Juros (%)</th>
           <th>Valor com Juros</th>
           <th>Data Contrato</th>
@@ -110,6 +111,7 @@
           <td>{{ emprestimo.id }}</td>
           <td>{{ emprestimo.cliente }}</td>
           <td>{{ formatarMoeda(emprestimo.valorOriginal) }}</td>
+          <td>{{ emprestimo.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
           <td>{{ emprestimo.percentualJuros }}%</td>
           <td>{{ formatarMoeda(emprestimo.valorComJuros) }}</td>
           <td>{{ formatarData(emprestimo.dataContrato) }}</td>
@@ -186,6 +188,14 @@
               Taxa deve estar entre 0% e 100%
             </div>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="frequencia">Frequência</label>
+          <select id="frequencia" formControlName="frequencia">
+            <option value="mensal">Mensal (30 dias)</option>
+            <option value="quinzenal">Quinzenal (15 dias)</option>
+          </select>
         </div>
         
         <div class="form-group">

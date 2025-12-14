@@ -76,8 +76,10 @@
         <tr>
           <th>ID</th>
           <th>Cliente</th>
+          <th>Frequência</th>
           <th>Valor Original</th>
           <th>Valor Total (c/ juros)</th>
+          <th>Data Contrato</th>
           <th>Vencimento</th>
           <th>Status/Multa</th>
           <th>Ações</th>
@@ -87,6 +89,7 @@
         <tr *ngFor="let emprestimo of emprestimosAtivos">
           <td>#{{ emprestimo.id }}</td>
           <td>{{ getClienteNome(emprestimo.clienteId, emprestimo) }}</td>
+          <td>{{ emprestimo.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
           <td class="valor">{{ formatCurrency(emprestimo.valorOriginal) }}</td>
           <td class="valor" [class.multa]="calcularDiasAtraso(emprestimo) > 0">
             {{ formatCurrency(calcularValorTotalComMulta(emprestimo)) }}
@@ -94,6 +97,7 @@
               (+{{ formatCurrency(calcularMulta(emprestimo)) }} multa)
             </small>
           </td>
+          <td>{{ formatDate(emprestimo.dataContrato) }}</td>
           <td [class]="emprestimo.status">
             {{ formatDate(emprestimo.proximoVencimento) }}
           </td>
@@ -111,9 +115,10 @@
           <td class="acoes">
             <!-- Só mostrar botões se não estiver pago -->
             <div *ngIf="emprestimo.status !== 'pago'">
-              <button class="btn-pagamento juros" (click)="abrirModalPagamento('juros', emprestimo)" title="Renovar empréstimo por mais 15 dias">
-                � Renovar ({{ formatCurrency(calcularJurosComMulta(emprestimo)) }})
+              <button class="btn-pagamento juros" (click)="abrirModalPagamento('juros', emprestimo)" title="Renovar empréstimo por mais {{ emprestimo.frequencia === 'quinzenal' ? '15' : '30' }} dias">
+                🔁 Renovar ({{ formatCurrency(calcularJurosComMulta(emprestimo)) }})
               </button>
+              <!-- WhatsApp removed from this screen; available on Cobrança -->
               <button class="btn-pagamento total" (click)="abrirModalPagamento('total', emprestimo)" title="Quitar empréstimo">
                 ✅ Quitar ({{ formatCurrency(calcularValorTotalComMulta(emprestimo)) }})
               </button>
@@ -166,7 +171,7 @@
           </td>
           <td>
             <span class="tipo-badge" [class]="'tipo-' + pagamento.tipoPagamento">
-              {{ getTipoPagamentoText(pagamento.tipoPagamento) }}
+              {{ getTipoPagamentoText(pagamento.tipoPagamento, getEmprestimo(pagamento.emprestimoId)) }}
             </span>
           </td>
           <td class="valor">{{ formatCurrency(pagamento.valor) }}</td>
@@ -223,7 +228,7 @@
           <div class="form-group">
             <label for="tipoPagamento">Tipo de Pagamento *</label>
             <select id="tipoPagamento" formControlName="tipoPagamento" (change)="onTipoPagamentoChange()" required>
-              <option value="juros">Renovar (15 dias)</option>
+              <option value="juros">Renovar ({{ modalEmprestimo?.frequencia === 'quinzenal' ? '15' : '30' }} dias)</option>
               <option value="total">Quitação Total</option>
             </select>
           </div>
@@ -300,7 +305,7 @@
         <div class="detalhe-item">
           <label>Tipo de Pagamento:</label>
           <span class="tipo-badge" [class]="'tipo-' + pagamentoSelecionado.tipoPagamento">
-            {{ getTipoPagamentoText(pagamentoSelecionado.tipoPagamento) }}
+            {{ getTipoPagamentoText(pagamentoSelecionado.tipoPagamento, getEmprestimo(pagamentoSelecionado.emprestimoId)) }}
           </span>
         </div>
 

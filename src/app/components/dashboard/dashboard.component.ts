@@ -7,6 +7,7 @@ import { MetricCardComponent, MetricData } from '../metric-card/metric-card.comp
 import { EmprestimosComponent } from '../emprestimos/emprestimos.component';
 import { ClientesComponent } from '../clientes/clientes.component';
 import { PagamentosComponent } from '../pagamentos/pagamentos.component';
+import { CobrancaComponent } from '../cobranca/cobranca.component';
 
 interface ResumoEmprestimos {
   ativos: number;
@@ -25,7 +26,8 @@ interface ResumoEmprestimos {
     MetricCardComponent,
     EmprestimosComponent,
     ClientesComponent,
-    PagamentosComponent
+    PagamentosComponent,
+    CobrancaComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -62,12 +64,14 @@ export class DashboardComponent implements OnInit {
   }
 
   atualizarMetricas() {
-    const totalEmprestado = this.emprestimos.reduce((total, emp) => total + emp.valorOriginal, 0);
-    const totalRecebido = this.emprestimos.reduce((total, emp) => total + emp.valorPago, 0);
+    const totalEmprestado = this.emprestimos.reduce((total, emp) => total + (Number(emp.valorOriginal) || 0), 0);
+    const totalRecebido = this.emprestimos.reduce((total, emp) => total + (Number(emp.valorPago) || 0), 0);
     const saldoDevedor = totalEmprestado - totalRecebido;
     const emprestimosVencidos = this.emprestimos.filter(emp => {
       if (emp.status === 'pago') return false;
+      if (!emp.proximoVencimento) return false;
       const vencimento = new Date(emp.proximoVencimento);
+      if (!isFinite(vencimento.getTime())) return false;
       return vencimento < new Date();
     });
     const taxaInadimplencia = this.emprestimos.length > 0 ? (emprestimosVencidos.length / this.emprestimos.length) * 100 : 0;
@@ -75,7 +79,11 @@ export class DashboardComponent implements OnInit {
     // Atualizar resumo
     this.resumoEmprestimos = {
       ativos: this.emprestimos.filter(emp => emp.status === 'ativo').length,
-      pendentes: this.emprestimos.filter(emp => emp.status === 'ativo' && new Date(emp.proximoVencimento) > new Date()).length,
+      pendentes: this.emprestimos.filter(emp => {
+        if (!emp.proximoVencimento) return false;
+        const dt = new Date(emp.proximoVencimento);
+        return emp.status === 'ativo' && isFinite(dt.getTime()) && dt > new Date();
+      }).length,
       emAtraso: emprestimosVencidos.length,
       quitados: this.emprestimos.filter(emp => emp.status === 'pago').length
     };
@@ -121,10 +129,12 @@ export class DashboardComponent implements OnInit {
   }
 
   formatarMoeda(valor: number): string {
+    const n = Number(valor);
+    const safe = isFinite(n) ? n : 0;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(valor);
+    }).format(safe);
   }
 
   onViewChange(view: string) {

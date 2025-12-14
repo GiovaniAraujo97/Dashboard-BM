@@ -41,7 +41,7 @@ export class EmprestimosComponent implements OnInit {
     const vencidos = this.emprestimos.filter(e => e.status === 'vencido').length;
     const valorTotal = this.emprestimos
       .filter(e => e.status === 'ativo')
-      .reduce((sum, e) => sum + e.valorOriginal, 0);
+      .reduce((sum, e) => sum + (Number(e.valorOriginal) || 0), 0);
     
     return { total, ativos, pagos, vencidos, valorTotal };
   }
@@ -57,6 +57,7 @@ export class EmprestimosComponent implements OnInit {
       clienteId: ['', Validators.required],
       valorOriginal: ['', [Validators.required, Validators.min(1)]],
       percentualJuros: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
+      frequencia: ['mensal', Validators.required],
       observacoes: ['']
     });
   }
@@ -64,6 +65,7 @@ export class EmprestimosComponent implements OnInit {
   ngOnInit() {
     this.emprestimos$.subscribe(emprestimos => {
       this.emprestimos = emprestimos;
+      console.debug('🔍 Emprestimos carregados (emprestimos.component):', this.emprestimos);
       this.aplicarFiltros();
     });
     
@@ -151,7 +153,7 @@ export class EmprestimosComponent implements OnInit {
     this.emprestimoSelecionado = null;
   }
 
-  criarEmprestimo() {
+  async criarEmprestimo() {
     console.log('🔧 criarEmprestimo chamado');
     console.log('🔧 Form válido:', this.emprestimoForm.valid);
     console.log('🔧 Form value:', this.emprestimoForm.value);
@@ -178,8 +180,37 @@ export class EmprestimosComponent implements OnInit {
       }
       
       try {
-        console.log('🔧 Chamando emprestimoService.adicionarEmprestimo...');
-        this.emprestimoService.adicionarEmprestimo(dadosEmprestimo);
+        // compute contract date and next due date based on frequency
+        const dataContrato = new Date();
+        const frequencia = dadosEmprestimo.frequencia || 'mensal';
+        const proximoVencimento = new Date(dataContrato);
+        if (frequencia === 'quinzenal') {
+          proximoVencimento.setDate(proximoVencimento.getDate() + 15);
+        } else {
+          proximoVencimento.setDate(proximoVencimento.getDate() + 30);
+        }
+
+        // ensure numeric calculations
+        const valorOriginal = Number(dadosEmprestimo.valorOriginal) || 0;
+        const percentualJuros = Number(dadosEmprestimo.percentualJuros) || 0;
+        const valorComJuros = Math.round(valorOriginal * (1 + percentualJuros / 100));
+
+        const novo = {
+          ...dadosEmprestimo,
+          clienteId: Number(dadosEmprestimo.clienteId),
+          cliente: clienteExiste ? clienteExiste.nome : '',
+          valorOriginal: valorOriginal,
+          percentualJuros: percentualJuros,
+          valorComJuros: valorComJuros,
+          valorPago: 0,
+          saldoDevedor: Math.max(0, valorComJuros),
+          dataContrato: dataContrato,
+          proximoVencimento: proximoVencimento,
+          status: 'ativo',
+          ciclosVencidos: 0
+        } as any;
+
+        await this.emprestimoService.adicionarEmprestimo(novo);
         console.log('🔧 Empréstimo criado com sucesso!');
         this.fecharModais();
       } catch (error) {
@@ -226,10 +257,12 @@ export class EmprestimosComponent implements OnInit {
   }
 
   formatarMoeda(valor: number): string {
+    const n = Number(valor);
+    const safe = isFinite(n) ? n : 0;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(valor);
+    }).format(safe);
   }
 
   formatarData(data: Date): string {

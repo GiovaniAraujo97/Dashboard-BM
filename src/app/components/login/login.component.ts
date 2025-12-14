@@ -12,34 +12,34 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  email: string = '';
-  senha: string = '';
-  senhaIncorreta: boolean = false;
+  // login fields
+  loginEmail: string = '';
+  loginSenha: string = '';
+  loginErro: boolean = false;
   carregando: boolean = false;
-  modoCadastro: boolean = false;
+
+  // signup fields
+  signupEmail: string = '';
+  signupSenha: string = '';
+  signupSenhaConfirm: string = '';
+  signupMessage: string = '';
 
   constructor(private router: Router, private auth: AuthService) {}
 
   async fazerLogin() {
-    if (!this.email.trim() || !this.senha.trim()) return;
+    if (!this.loginEmail.trim() || !this.loginSenha.trim()) return;
 
     this.carregando = true;
-    this.senhaIncorreta = false;
+    this.loginErro = false;
 
     try {
-      if (this.modoCadastro) {
-        const { error } = await this.auth.signUp(this.email.trim(), this.senha);
-        if (error) throw error;
-        alert('Conta criada. Verifique seu e-mail para confirmar.');
-      } else {
-        const { error } = await this.auth.signIn(this.email.trim(), this.senha);
-        if (error) throw error;
-        this.router.navigate(['/dashboard']);
-      }
+      const { error } = await this.auth.signIn(this.loginEmail.trim(), this.loginSenha);
+      if (error) throw error;
+      this.router.navigate(['/dashboard']);
     } catch (err: any) {
       console.error('Erro auth:', err);
-      this.senhaIncorreta = true;
-      this.senha = '';
+      this.loginErro = true;
+      this.loginSenha = '';
     } finally {
       this.carregando = false;
     }
@@ -51,8 +51,22 @@ export class LoginComponent {
     }
   }
 
-  toggleModo() {
-    this.modoCadastro = !this.modoCadastro;
-    this.senhaIncorreta = false;
+  async fazerCadastro() {
+    this.signupMessage = '';
+    if (!this.signupEmail.trim() || !this.signupSenha) return;
+    if (this.signupSenha !== this.signupSenhaConfirm) {
+      this.signupMessage = 'As senhas não coincidem.';
+      return;
+    }
+
+    try {
+      const res = await this.auth.signUp(this.signupEmail.trim(), this.signupSenha);
+      if ((res as any).error) throw (res as any).error;
+      this.signupMessage = 'Conta criada. Verifique seu e-mail para confirmar.';
+      this.signupEmail = this.signupSenha = this.signupSenhaConfirm = '';
+    } catch (err: any) {
+      console.error('Erro signup:', err);
+      this.signupMessage = err?.message || 'Falha ao criar conta.';
+    }
   }
 }

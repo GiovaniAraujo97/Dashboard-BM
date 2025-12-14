@@ -372,8 +372,9 @@
 }
 
 .pago {
-  background-color: rgba(156, 39, 176, 0.1);
-  color: #9c27b0;
+  /* Use a green tone for paid items to match 'quitado' status badges */
+  background-color: rgba(76, 175, 80, 0.08);
+  color: #4caf50;
 }
 
 .pago-status {

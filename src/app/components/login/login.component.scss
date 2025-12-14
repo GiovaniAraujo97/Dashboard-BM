@@ -9,6 +9,68 @@
   overflow: hidden;
 }
 
+.split {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.split .left,
+.split .right {
+  width: 50%;
+}
+
+.split .left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split .right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.promo {
+  color: white;
+  text-align: left;
+  max-width: 420px;
+}
+
+.promo h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.promo p {
+  opacity: 0.95;
+  margin-bottom: 1rem;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 2rem 0;
+}
+
+.features li {
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+}
+
+.promo-illustration {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  box-shadow: inset 0 6px 18px rgba(0,0,0,0.08);
+}
+
 .login-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -18,7 +80,7 @@
     0 20px 60px rgba(0, 0, 0, 0.1),
     0 0 40px rgba(255, 255, 255, 0.1) inset;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  max-width: 450px;
+  max-width: 520px;
   width: 100%;
   position: relative;
   z-index: 10;
@@ -32,50 +94,60 @@
   .logo {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+      .login-container {
+        padding: 1rem;
+      }
 
-    i {
-      font-size: 3rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+      .split {
+        flex-direction: column;
+        gap: 1rem;
+      }
 
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin: 0;
-      letter-spacing: -1px;
-    }
-  }
+      .split .left,
+      .split .right {
+        width: 100%;
+      }
 
-  .subtitle {
-    color: #6b7280;
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin: 0;
-    opacity: 0.8;
-  }
-}
+      .login-card {
+        padding: 1.5rem;
+        margin: 0;
 
-.login-form {
-  .form-group {
-    margin-bottom: 2rem;
+        .login-header {
+          .logo {
+            flex-direction: column;
+            gap: 0.5rem;
 
-    label {
-      display: block;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.75rem;
-      font-size: 1rem;
-    }
+            h1 {
+              font-size: 2rem;
+            }
+          }
+
+          .subtitle {
+            font-size: 1rem;
+          }
+        }
+
+        .login-form {
+          .form-group {
+            .input-wrapper {
+              .form-input {
+                padding: 0.875rem 0.875rem 0.875rem 3rem;
+                font-size: 1rem;
+              }
+
+              .input-icon {
+                left: 1rem;
+                font-size: 1.1rem;
+              }
+            }
+          }
+
+          .btn-login {
+            padding: 1rem;
+            font-size: 1rem;
+          }
+        }
+      }
 
     .input-wrapper {
       position: relative;
@@ -221,6 +293,29 @@
       }
     }
   }
+
+  .actions-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .secondary-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .btn-link {
+    background: transparent;
+    border: none;
+    color: #374151;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+  }
 }
 
 .login-footer {
@@ -286,30 +381,422 @@
 }
 
 // Animações
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
 @keyframes float {
   0%, 100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0);
   }
   50% {
     transform: translateY(-20px) rotate(180deg);
   }
+}
+
+/* Ensure error message is hidden by default and only shown when the .show class is present */
+.login-card .error-message {
+  display: none !important;
+  opacity: 0 !important;
+  transform: translateY(-6px) !important;
+}
+.login-card .error-message.show {
+  display: flex !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+
+.split {
+  max-width: 1200px;
+  gap: 2.5rem;
+}
+
+.promo {
+  max-width: 520px;
+}
+
+/* Glassy login card with high-contrast inputs */
+.login-card {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(8px) saturate(120%);
+  border-radius: 20px;
+  padding: 2.25rem;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+  border: 1px solid rgba(255,255,255,0.06);
+  animation: slideUp 0.5s ease;
+}
+
+.brand { display:flex; align-items:center; gap:0.9rem; margin-bottom:0.4rem; }
+.brand-mark { width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; background:linear-gradient(135deg,#7b3fe4,#b84cf5); box-shadow:0 12px 36px rgba(136,76,235,0.18); }
+.brand-text h1 { margin:0; font-size:1.25rem; color:#ffffff; font-weight:800; }
+.subtitle { margin:0; color:#dfe9ff; font-size:0.95rem; }
+.lead { color:#e6eefc; margin-top:0.25rem; margin-bottom:1.25rem; }
+
+/* Inputs: high contrast white background, dark text */
+.input-wrapper .form-input {
+  padding:1rem 1.05rem 1rem 3.5rem;
+  border-radius:12px;
+  background:#ffffff;
+  color:#0b1220;
+  border:1px solid rgba(12,14,20,0.06);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06) inset;
+  font-size: 1.125rem;
+  line-height: 1.45;
+}
+.input-wrapper .form-input { width: 100%; display: block; }
+.input-wrapper .form-input::placeholder { color:#9aa3b8; }
+.input-wrapper .input-icon { left:0.9rem; color:rgba(12,18,36,0.45); }
+
+/* Larger text while typing on mobile/desktop */
+.input-wrapper .form-input,
+.input-wrapper input[type="email"],
+.input-wrapper input[type="password"] {
+  font-size: 1.125rem;
+}
+
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { color:#0b1220; font-weight:700; margin-bottom:0.5rem; display:block; }
+
+.btn-login {
+  padding:0.95rem 0.9rem; border-radius:12px; background:linear-gradient(90deg,#7b3fe4 0%,#b84cf5 100%);
+  box-shadow:0 10px 30px rgba(184,76,245,0.14); font-weight:800; color:white; border:none;
+  width: 100%;
+  font-size: 1.05rem;
+}
+.btn-login:disabled { opacity:0.6; }
+.btn-signup { padding:0.75rem; border-radius:10px; background:#5b3bd6; border:none; color:white; font-weight:700; width:100%; }
+
+.promo-panel { position:relative; border-radius:18px; overflow:hidden; background: linear-gradient(180deg,#6b3be6 0%, #4b2fb8 100%); display:flex; align-items:center; justify-content:center; }
+.promo-content { padding:2.5rem; z-index:5; color:#ffffff; width:100%; }
+
+.signup-card {
+  margin-top:1rem;
+  background: rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:1.5rem;
+  border:1px solid rgba(255,255,255,0.06);
+  max-width:520px; /* match login card max width */
+  width:100%;
+  min-height: 420px; /* match visual height */
+  margin-left: auto;
+  margin-right: auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.form-row { display:flex; gap:0.75rem; }
+.form-group.half { display:flex; flex-direction:column; }
+.form-group.half .form-input { width:100%; }
+
+/* spacing adjustments for headings and paragraphs */
+.brand { margin-bottom: 1rem; }
+.welcome { margin-bottom: 0.5rem; }
+.promo-content h2 { margin-bottom: 0.75rem; }
+.promo-lead { margin-bottom: 1rem; }
+
+/* make the error message more separated */
+.error-message { margin-top: 0.5rem !important; }
+
+/* ensure the actions row sits with some breathing room */
+.actions-row { margin-top: 1rem; }
+
+@media (max-width: 880px) {
+  .split { flex-direction:column; gap:1rem; }
+  .split .left, .split .right { width:100%; }
+  .promo-illustration { display:none; }
+  .login-card { padding:1.5rem; }
+  /* responsive: make auth cards full width and auto height on small screens */
+  .split .left .login-card,
+  .split .right .promo-panel,
+  .split .right .signup-card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+
+/* ensure both panels have same visual height */
+:root {
+  --auth-card-width: 560px;
+  --auth-card-height: 520px;
+}
+
+/* RESPONSIVE IMPROVEMENTS: ensure the login/signup split stacks and scales well */
+@media (max-width: 1100px) {
+  .split {
+    max-width: 960px;
+    gap: 1.5rem;
+  }
+
+  .login-card, .signup-card, .promo-panel {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 880px) {
+  .split {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .split .left,
+  .split .right {
+    width: 100%;
+  }
+
+  .login-card {
+    padding: 1.25rem !important;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    margin: 0 0.5rem;
+  }
+
+  .signup-card {
+    padding: 1rem !important;
+    margin: 0 0.5rem;
+  }
+
+  .promo-panel {
+    display: block;
+    padding: 1rem;
+  }
+
+  .promo-illustration { display: none; }
+
+  .input-wrapper .form-input {
+    font-size: 1rem;
+    padding: 0.9rem 1rem 0.9rem 3rem;
+  }
+
+  .btn-login, .btn-signup, .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+  }
+
+  .brand-mark { width:48px; height:48px; }
+  .brand-text h1 { font-size: 1.05rem; }
+}
+
+/* On small screens make the left/login panel occupy the viewport height
+   and place the signup panel below so users can scroll down to register */
+@media (max-width: 880px) {
+  .login-container {
+    /* allow page to scroll so signup can be reached */
+    overflow: visible;
+  }
+
+  .split .left {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .split .left .login-card {
+    /* ensure card is vertically centered inside the full-height left panel */
+    margin: 0 auto;
+    max-width: 640px;
+    width: 100%;
+  }
+
+  .split .right {
+    width: 100%;
+    padding-top: 1rem;
+  }
+
+  /* reduce background decoration impact on small screens */
+  .background-decoration { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .login-container { padding: 0.75rem; }
+
+  .login-card, .signup-card, .promo-panel {
+    border-radius: 12px;
+    padding: 0.85rem !important;
+  }
+
+  .login-header { margin-bottom: 1rem; }
+
+  .input-wrapper .form-input {
+    padding-left: 2.8rem;
+    font-size: 1rem;
+  }
+
+  .input-icon { left: 0.9rem; }
+
+  .promo-content { padding: 1rem; }
+
+  .stat-card { padding: 12px; }
+}
+
+/* Accessibility: increase tap targets on very small screens */
+@media (max-width: 360px) {
+  .btn-login, .btn-signup, .btn-primary, .btn-secondary {
+    padding: 1.05rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+.split .left,
+.split .right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Force both panels to the same explicit size (larger) */
+.split .left .login-card,
+.split .right .promo-panel {
+  width: var(--auth-card-width) !important;
+  height: var(--auth-card-height) !important;
+  min-height: unset !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure signup card inside promo matches the login card size */
+.split .right .signup-card {
+  max-width: var(--auth-card-width) !important;
+  width: calc(var(--auth-card-width) - 2rem) !important;
+  height: calc(var(--auth-card-height) - 4rem) !important;
+  min-height: unset !important;
+  margin: 0 auto !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+}
+
+.promo-content { display:flex; flex-direction:column; justify-content:center; }
+
+/* LEFT PANEL: force a light theme for the login card to ensure readability */
+.split .left .login-card {
+  background: #ffffff !important;
+  color: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 2rem !important;
+  border: 1px solid rgba(11,18,32,0.06) !important;
+  box-shadow: 0 12px 36px rgba(2,6,23,0.06) !important;
+}
+.split .left .brand-text h1,
+.split .left .welcome {
+  color: #0b1220 !important;
+  text-shadow: none !important;
+}
+.split .left .lead,
+.split .left .subtitle {
+  color: #475569 !important;
+}
+.split .left .form-group label {
+  color: #0b1220 !important;
+}
+.split .left .input-wrapper .form-input {
+  background: #f7fafc !important;
+  color: #0b1220 !important;
+  border: 1px solid rgba(11,18,32,0.06) !important;
+  box-shadow: none !important;
+}
+.split .left .input-wrapper .input-icon {
+  color: rgba(12,18,36,0.45) !important;
+}
+.split .left .btn-login {
+  color: #fff !important;
+}
+
+/* Ensure promo (right) keeps white text */
+.split .right .promo-content h2,
+.split .right .promo-content p,
+.split .right .promo-content .small {
+  color: #ffffff !important;
+}
+
+/* Reduce overly large headings that were causing imbalance */
+.welcome { font-size: 1.25rem !important; }
+
+/* Strong overrides to fix sizing, color and spacing issues */
+.login-container, .login-card, .promo-panel { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
+/* Welcome title */
+.welcome {
+  font-size: 1.4rem !important;
+  line-height: 1.2 !important;
+  margin: 0 0 0.5rem 0 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 8px rgba(11,18,32,0.55);
+}
+
+/* Brand title smaller and compact */
+.brand-text h1 {
+  font-size: 1rem !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+}
+
+/* Promo heading */
+.promo-content h2 {
+  font-size: 1.55rem !important;
+  margin: 0 0 0.25rem 0 !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+/* Ensure promo lead is readable */
+.promo-lead, .promo-content p { color: rgba(255,255,255,0.92) !important; margin-bottom: 1rem; }
+
+/* Make labels and inputs consistent */
+.form-group label { color: #0b1220 !important; }
+.signup-card .form-group label { color: #ffffff !important; }
+
+/* Right panel content alignment */
+.promo-content { padding-left: 2rem; padding-right: 2rem; }
+
+/* Tighter spacing for cards */
+.login-card { padding: 1.75rem !important; }
+.signup-card { padding: 0.85rem !important; }
+
+/* Reduce min-height slightly for better balance */
+.login-card, .promo-panel { width: var(--auth-card-width) !important; height: var(--auth-card-height) !important; box-sizing: border-box !important; }
+
+/* Improve button contrast */
+.btn-login { background: linear-gradient(90deg,#6f3be8 0%,#c14ff6 100%) !important; }
+.btn-signup { background: linear-gradient(90deg,#4b2fb8,#7b48e0) !important; }
+
+/* Clean up leftover decorative circles */
+.background-decoration { display: none !important; }
+
+/* image styling for provided illustration */
+.promo-illustration .promo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px 0 0 12px;
+  box-shadow: 0 20px 60px rgba(12,16,40,0.45);
+}
+
+/* when image missing, keep subtle fallback color */
+.promo-illustration { background: linear-gradient(135deg, rgba(155,140,255,0.12), rgba(108,111,240,0.08)); }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+/* Ensure error message is hidden by default and only shown when the .show class is present */
+.login-card .error-message {
+  display: none !important;
+  opacity: 0 !important;
+  transform: translateY(-6px) !important;
+}
+.login-card .error-message.show {
+  display: flex !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 // Responsividade
@@ -403,4 +890,22 @@
       }
     }
   }
+}
+
+/* Ensure the login error message is hidden by default and only visible when `.show` is present */
+.login-form .form-group .error-message {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+.login-form .form-group .error-message.show {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  margin-top: 0.5rem !important;
+  overflow: visible !important;
 }

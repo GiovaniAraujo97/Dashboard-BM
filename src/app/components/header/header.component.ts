@@ -265,6 +265,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   navegarParaTela(tela: string) {
+    console.log('Header: navegarParaTela ->', tela);
     this.navegarPara.emit(tela);
     this.menuMobileAberto = false; // Fechar menu mobile após navegação
   }
@@ -289,8 +290,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   async logout() {
+    console.log('Header: logout clicked');
     try {
       await this.auth.signOut();
+      console.log('Header: auth.signOut resolved');
     } catch (err) {
       console.warn('Erro ao deslogar via Supabase:', err);
     }

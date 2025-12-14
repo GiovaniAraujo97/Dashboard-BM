@@ -1,0 +1,43 @@
+<div class="cobranca-container">
+  <h2>📞 Cobrança</h2>
+
+  <div class="tabela-container">
+    <table class="cobranca-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Frequência</th>
+          <th>Valor Original</th>
+          <th>Valor Total (c/ juros)</th>
+          <th>Data Contrato</th>
+          <th>Próximo Vencimento</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of emprestimos">
+          <td>#{{ e.id }}</td>
+          <td>{{ getClienteNome(e.clienteId, e) }}</td>
+          <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
+          <td>{{ formatCurrency(e.valorOriginal) }}</td>
+          <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
+          <td>{{ formatDate(e.dataContrato) }}</td>
+          <td>{{ formatDate(e.proximoVencimento) }}</td>
+          <td>{{ e.status }}</td>
+          <td class="acoes">
+            <!-- Mensagem de lembrete/padrão -->
+            <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+            <!-- Mensagem específica para renovar -->
+            <a class="btn-small" [href]="getWhatsAppLinkForAction(e, 'renovar')" target="_blank" *ngIf="getWhatsAppLinkForAction(e, 'renovar')" title="Enviar mensagem para Renovação">🔁</a>
+            <!-- Mensagem específica para quitação -->
+            <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e, 'quitar')" target="_blank" *ngIf="getWhatsAppLinkForAction(e, 'quitar')" title="Enviar mensagem para Quitar">✅</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="emprestimos.length === 0" class="sem-dados">Nenhum empréstimo para cobrança.</div>
+  </div>
+</div>

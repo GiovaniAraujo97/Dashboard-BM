@@ -30,6 +30,7 @@ export class PagamentosComponent implements OnInit {
   pagamentos: Pagamento[] = [];
   emprestimosAtivos: Emprestimo[] = [];
   clientes: Cliente[] = [];
+  modalEmprestimo: Emprestimo | null = null;
   
   pagamentoForm: FormGroup;
   mostrarModalPagamento = false;
@@ -279,7 +280,8 @@ export class PagamentosComponent implements OnInit {
     if (emprestimoId) {
       const emprestimo = this.getEmprestimo(parseInt(emprestimoId));
       if (emprestimo) {
-        // Pré-preencher valor sugerido baseado no tipo de pagamento
+        // Atualizar referência do modal (se estiver aberto) e pré-preencher valor sugerido
+        this.modalEmprestimo = emprestimo;
         this.onTipoPagamentoChange();
       }
     }
@@ -288,27 +290,34 @@ export class PagamentosComponent implements OnInit {
   onTipoPagamentoChange() {
     const emprestimoId = this.pagamentoForm.get('emprestimoId')?.value;
     const tipoPagamento = this.pagamentoForm.get('tipoPagamento')?.value;
-    
-    if (emprestimoId && tipoPagamento) {
-      const emprestimo = this.getEmprestimo(parseInt(emprestimoId));
-      if (emprestimo) {
-        let valorSugerido = 0;
-        
-        if (tipoPagamento === 'juros') {
-          // Calcular valor para renovação do período
-          valorSugerido = emprestimo.valorOriginal * (emprestimo.percentualJuros / 100);
-        } else if (tipoPagamento === 'total') {
-          // Valor total com juros
-          valorSugerido = emprestimo.valorComJuros;
-        }
-        
-        this.pagamentoForm.patchValue({ valor: valorSugerido.toFixed(2) });
+
+    if (!tipoPagamento) return;
+
+    // Preferir o empréstimo carregado no modal quando disponível
+    let emprestimo: Emprestimo | undefined;
+    if (this.modalEmprestimo) {
+      emprestimo = this.modalEmprestimo;
+    } else if (emprestimoId) {
+      emprestimo = this.getEmprestimo(parseInt(emprestimoId));
+    }
+
+    if (emprestimo) {
+      let valorSugerido = 0;
+      if (tipoPagamento === 'juros') {
+        // Calcular valor para renovação do período (juros do ciclo)
+        valorSugerido = emprestimo.valorOriginal * (emprestimo.percentualJuros / 100);
+      } else if (tipoPagamento === 'total') {
+        // Valor total com juros
+        valorSugerido = emprestimo.valorComJuros;
       }
+      this.pagamentoForm.patchValue({ valor: valorSugerido.toFixed(2) });
     }
   }
 
   abrirModalPagamento(tipo: 'juros' | 'total', emprestimo: Emprestimo) {
-    // Só funciona com empréstimo específico
+    // Guardar referência do empréstimo no modal para uso na UI
+    this.modalEmprestimo = emprestimo;
+
     this.pagamentoForm.patchValue({
       emprestimoId: emprestimo.id,
       tipoPagamento: tipo,
@@ -322,6 +331,7 @@ export class PagamentosComponent implements OnInit {
 
   abrirModalDetalhes(pagamento: Pagamento) {
     this.pagamentoSelecionado = pagamento;
+    this.modalEmprestimo = null;
     this.mostrarModalDetalhes = true;
   }
 
@@ -329,13 +339,14 @@ export class PagamentosComponent implements OnInit {
     this.mostrarModalPagamento = false;
     this.mostrarModalDetalhes = false;
     this.pagamentoSelecionado = null;
+    this.modalEmprestimo = null;
   }
 
   validarEmprestimoExiste(emprestimoId: number): boolean {
     return this.emprestimosAtivos.some(e => e.id === emprestimoId);
   }
 
-  registrarPagamento() {
+  async registrarPagamento() {
     if (this.pagamentoForm.valid) {
       const formData = this.pagamentoForm.value;
       const emprestimoId = parseInt(formData.emprestimoId);
@@ -368,19 +379,20 @@ export class PagamentosComponent implements OnInit {
         observacoes: formData.observacoes
       };
 
-      // Lógica quinzenal: se pago total, marcar como pago; se renovação, renovar por 15 dias
+      // Se pagamento total, marcar como pago; caso contrário renovação conforme frequência
       if (formData.tipoPagamento === 'total') {
         // Pagamento total - marcar empréstimo como pago
-        this.emprestimoService.atualizarStatusEmprestimo(emprestimo.id, 'pago');
+        await this.emprestimoService.atualizarStatusEmprestimo(emprestimo.id, 'pago');
         console.log('Empréstimo quitado:', emprestimo.id);
       } else {
-        // Renovação - renovar por mais 15 dias
-        const proximoVencimento = this.calcularProximoVencimento(new Date());
-        novoPagamento.proximoVencimento = proximoVencimento;
-        
-        // Atualizar o empréstimo para resetar o ciclo de vencimento
-        this.emprestimoService.renovarEmprestimoPor15Dias(emprestimo.id, proximoVencimento);
-        console.log('Empréstimo renovado por 15 dias:', emprestimo.id, 'Novo vencimento:', proximoVencimento);
+        // Renovação genérica: call service to advance next due by 15/30 days
+        const novoVencimento = await this.emprestimoService.renovarEmprestimo(emprestimo.id);
+        if (novoVencimento) {
+          novoPagamento.proximoVencimento = novoVencimento;
+          console.log('Empréstimo renovado:', emprestimo.id, 'Novo vencimento:', novoVencimento);
+        } else {
+          console.warn('Falha ao renovar empréstimo:', emprestimo.id);
+        }
       }
 
       this.pagamentos.push(novoPagamento);
@@ -411,8 +423,12 @@ export class PagamentosComponent implements OnInit {
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
-  getTipoPagamentoText(tipo: string): string {
-    return tipo === 'juros' ? 'Juros (15 dias)' : 'Quitação Total';
+  getTipoPagamentoText(tipo: string, emprestimo?: Emprestimo | undefined): string {
+    if (tipo === 'juros') {
+      const dias = emprestimo?.frequencia === 'quinzenal' ? 15 : 30;
+      return `Juros (${dias} dias)`;
+    }
+    return 'Quitação Total';
   }
 
   getFormaPagamentoText(forma: string): string {
@@ -423,5 +439,65 @@ export class PagamentosComponent implements OnInit {
       'cartao': 'Cartão'
     };
     return formas[forma] || forma;
+  }
+
+  // Helpers para WhatsApp
+  private onlyDigits(s: string): string {
+    return (s || '').toString().replace(/\D/g, '');
+  }
+
+  private formatPhoneForWhatsApp(raw: string): string | null {
+    const digits = this.onlyDigits(raw);
+    if (!digits) return null;
+
+    // Se já tem código do país (começa com 55), usa direto
+    if (digits.startsWith('55') && digits.length >= 11) return digits;
+
+    // Se tiver 10 ou 11 dígitos (BR sem DDI), prefixa com 55
+    if (digits.length === 10 || digits.length === 11) return '55' + digits;
+
+    // Para outros casos, tentar usar diretamente (pode já ter DDI)
+    return digits;
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    const da = new Date(a);
+    const db = new Date(b);
+    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+  }
+
+  private buildWhatsAppMessage(emprestimo: Emprestimo): string {
+    const cliente = this.clientes.find(c => c.id === emprestimo.clienteId);
+    const nome = cliente?.nome || emprestimo.cliente || 'Cliente';
+    const valor = this.formatCurrency(this.calcularValorTotalComMulta(emprestimo));
+    const venc = this.formatDate(emprestimo.proximoVencimento);
+
+    const hoje = new Date();
+    let texto = '';
+    const diasAtraso = this.calcularDiasAtraso(emprestimo);
+
+    if (this.isSameDay(emprestimo.proximoVencimento, hoje)) {
+      texto = `Olá ${nome}, tudo bem? Lembrete: seu pagamento de ${valor} vence hoje (${venc}). Por favor, confirme o pagamento ou entre em contato.`;
+    } else if (new Date(emprestimo.proximoVencimento) < hoje) {
+      texto = `Olá ${nome}, seu pagamento de ${valor} venceu há ${diasAtraso} ${diasAtraso === 1 ? 'dia' : 'dias'} (vencimento ${venc}). Por favor regularize o quanto antes.`;
+    } else {
+      const diffTime = new Date(emprestimo.proximoVencimento).getTime() - hoje.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      texto = `Olá ${nome}, lembrete: seu pagamento de ${valor} vence em ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'} (${venc}). Obrigado!`;
+    }
+
+    return texto;
+  }
+
+  getWhatsAppLink(emprestimo: Emprestimo): string | null {
+    // Buscar telefone do cliente
+    const cliente = this.clientes.find(c => c.id === emprestimo.clienteId);
+    const rawPhone = cliente?.telefone || '';
+    const phone = this.formatPhoneForWhatsApp(rawPhone);
+    if (!phone) return null;
+
+    const mensagem = this.buildWhatsAppMessage(emprestimo);
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`;
+    return url;
   }
 }

@@ -34,6 +34,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'cobranca',
+    loadComponent: () => import('./components/cobranca/cobranca.component').then(m => m.CobrancaComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/dashboard'
   }

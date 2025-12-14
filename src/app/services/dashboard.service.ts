@@ -24,6 +24,7 @@ export interface Emprestimo {
   valorComJuros: number;
   dataContrato: Date;
   proximoVencimento: Date;
+  frequencia?: 'quinzenal' | 'mensal';
   status: 'ativo' | 'pago' | 'vencido';
   valorPago: number;
   saldoDevedor: number;
@@ -134,12 +135,28 @@ export class EmprestimoService {
   async adicionarEmprestimo(emprestimo: Omit<Emprestimo, 'id'>): Promise<Emprestimo> {
     const currentData = this.storageService.getCurrentData();
     const newId = Math.max(...currentData.emprestimos.map(e => e.id), 0) + 1;
-    
+    const valorOriginal = Number((emprestimo as any).valorOriginal) || 0;
+    const percentualJuros = Number((emprestimo as any).percentualJuros) || 0;
+    const valorComJuros = Number((emprestimo as any).valorComJuros) || Math.round(valorOriginal * (1 + percentualJuros / 100));
+    const valorPago = Number((emprestimo as any).valorPago) || 0;
+    const saldoDevedor = Number((emprestimo as any).saldoDevedor) || Math.max(0, valorComJuros - valorPago);
+
     const novoEmprestimo: Emprestimo = {
-      ...emprestimo,
       id: newId,
-      dataContrato: new Date()
-    };
+      clienteId: Number((emprestimo as any).clienteId) || 0,
+      cliente: (emprestimo as any).cliente ?? '',
+      valorOriginal: valorOriginal,
+      percentualJuros: percentualJuros,
+      valorComJuros: valorComJuros,
+      dataContrato: (emprestimo as any).dataContrato ? new Date((emprestimo as any).dataContrato) : new Date(),
+      proximoVencimento: (emprestimo as any).proximoVencimento ? new Date((emprestimo as any).proximoVencimento) : new Date(),
+      frequencia: (emprestimo as any).frequencia ?? 'mensal',
+      status: (emprestimo as any).status ?? 'ativo',
+      valorPago: valorPago,
+      saldoDevedor: saldoDevedor,
+      ciclosVencidos: Number((emprestimo as any).ciclosVencidos) || 0,
+      observacoes: (emprestimo as any).observacoes
+    } as Emprestimo;
 
     await this.storageService.addEmprestimo(novoEmprestimo);
     return novoEmprestimo;
@@ -166,13 +183,32 @@ export class EmprestimoService {
     }
   }
 
-  async renovarEmprestimoPor15Dias(id: number, proximoVencimento: Date): Promise<void> {
+  /**
+   * Renova um empréstimo avançando o próximo vencimento conforme a frequência
+   * (quinzenal = 15 dias, mensal = 30 dias). Retorna a nova data de vencimento.
+   */
+  async renovarEmprestimo(id: number): Promise<Date | null> {
     const currentData = this.storageService.getCurrentData();
     const emprestimo = currentData.emprestimos.find(e => e.id === id);
-    if (emprestimo) {
-      emprestimo.proximoVencimento = proximoVencimento;
-      await this.storageService.updateEmprestimo(emprestimo);
+    if (!emprestimo) return null;
+
+    const hoje = new Date();
+    let baseDate = emprestimo.proximoVencimento ? new Date(emprestimo.proximoVencimento) : new Date();
+    if (baseDate < hoje) {
+      baseDate = hoje;
     }
+
+    const freq = (emprestimo as any).frequencia ?? 'mensal';
+    const dias = freq === 'quinzenal' ? 15 : 30;
+
+    const novoVencimento = new Date(baseDate);
+    novoVencimento.setDate(novoVencimento.getDate() + dias);
+
+    emprestimo.proximoVencimento = novoVencimento;
+    emprestimo.status = 'ativo';
+
+    await this.storageService.updateEmprestimo(emprestimo);
+    return novoVencimento;
   }
 
   async limparEmprestimosOrfaos(): Promise<void> {
