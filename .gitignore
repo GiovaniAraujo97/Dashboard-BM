@@ -43,3 +43,4 @@ Thumbs.db
 
 # Environment files with secrets
 /src/environments/environment.development.ts
+src/index.html
