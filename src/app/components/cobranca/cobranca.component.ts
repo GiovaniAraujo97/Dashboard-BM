@@ -13,6 +13,8 @@ import { FormsModule } from '@angular/forms';
 export class CobrancaComponent implements OnInit {
   emprestimos: Emprestimo[] = [];
   clientes: Cliente[] = [];
+  emprestimosHoje: Emprestimo[] = [];
+  emprestimosRestantes: Emprestimo[] = [];
   activePaymentId: number | null = null;
   private pixKeys: { [id: number]: string } = {};
 
@@ -21,8 +23,7 @@ export class CobrancaComponent implements OnInit {
   ngOnInit(): void {
     this.emprestimoService.getClientes().subscribe(c => this.clientes = c);
     this.emprestimoService.getEmprestimos().subscribe(e => {
-      // listar apenas ativos e vencidos (cobrança)
-      this.emprestimos = e.filter(x => x.status === 'ativo' || x.status === 'vencido');
+      this.updateLists(e);
     });
   }
 
@@ -100,12 +101,22 @@ export class CobrancaComponent implements OnInit {
   async renovarEmprestimo(emprestimo: Emprestimo) {
     await this.emprestimoService.renovarEmprestimo(emprestimo.id);
     // reload
-    this.emprestimoService.getEmprestimos().subscribe(e => this.emprestimos = e.filter(x => x.status === 'ativo' || x.status === 'vencido'));
+    this.emprestimoService.getEmprestimos().subscribe(e => this.updateLists(e));
   }
 
   async quitarEmprestimo(emprestimo: Emprestimo) {
     await this.emprestimoService.atualizarStatusEmprestimo(emprestimo.id, 'pago');
-    this.emprestimoService.getEmprestimos().subscribe(e => this.emprestimos = e.filter(x => x.status === 'ativo' || x.status === 'vencido'));
+    this.emprestimoService.getEmprestimos().subscribe(e => this.updateLists(e));
+  }
+
+  private updateLists(all: Emprestimo[]) {
+    const filtered = all.filter(x => x.status === 'ativo' || x.status === 'vencido');
+    // ordenar por próximo vencimento asc
+    filtered.sort((a, b) => new Date(a.proximoVencimento).getTime() - new Date(b.proximoVencimento).getTime());
+    this.emprestimos = filtered;
+    const hoje = new Date();
+    this.emprestimosHoje = filtered.filter(e => this.isSameDay(new Date(e.proximoVencimento), hoje));
+    this.emprestimosRestantes = filtered.filter(e => !this.isSameDay(new Date(e.proximoVencimento), hoje));
   }
 
   // --- Mensagens específicas para ações (renovar / quitar) com chave PIX aleatória

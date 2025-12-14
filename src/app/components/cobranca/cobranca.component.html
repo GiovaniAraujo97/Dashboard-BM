@@ -17,7 +17,44 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of emprestimos">
+        <!-- Vencendo hoje (prioridade) -->
+        <tr *ngFor="let e of emprestimosHoje" class="vencendo-hoje">
+          <td>#{{ e.id }}</td>
+          <td>{{ getClienteNome(e.clienteId, e) }}</td>
+          <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
+          <td>{{ formatCurrency(e.valorOriginal) }}</td>
+          <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
+          <td>{{ formatDate(e.dataContrato) }}</td>
+          <td>{{ formatDate(e.proximoVencimento) }}</td>
+          <td>{{ e.status }}</td>
+          <td class="acoes">
+            <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+
+            <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
+
+            <div *ngIf="activePaymentId === e.id" class="payment-options">
+              <div class="amounts">
+                <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
+                <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+              </div>
+
+              <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+
+              <div class="payment-actions">
+                <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
+                <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Separador se houver itens restantes -->
+        <tr *ngIf="emprestimosRestantes.length > 0" class="section-sep">
+          <td colspan="9">Outros empréstimos</td>
+        </tr>
+
+        <!-- Restantes -->
+        <tr *ngFor="let e of emprestimosRestantes">
           <td>#{{ e.id }}</td>
           <td>{{ getClienteNome(e.clienteId, e) }}</td>
           <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
