@@ -173,6 +173,14 @@ small {
   padding: 0 var(--space-6);
 }
 
+/* Standard page container used by main views to keep consistent width */
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px var(--space-6);
+}
+
 .grid {
   display: grid;
   gap: var(--space-6);

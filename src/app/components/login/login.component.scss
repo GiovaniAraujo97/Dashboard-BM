@@ -402,6 +402,102 @@
   transform: translateY(0) !important;
 }
 
+/* New centered layout styles */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #0f172a 0%, #0b1220 100%);
+}
+
+.center-card {
+  max-width: 680px;
+  width: 100%;
+  background: rgba(2, 78, 119, 0.92); /* semi-opaque blue so background blue remains visible */
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 2.25rem;
+  box-shadow: 0 12px 36px rgba(2,20,40,0.45), 0 4px 12px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.center-card .brand {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  margin-bottom:1rem;
+}
+
+.brand-mark{
+  width:56px;
+  height:56px;
+  border-radius:12px;
+  background: linear-gradient(135deg,#16a34a,#059669);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:1.2rem;
+}
+
+.brand-text h1{margin:0;font-size:1.25rem;color:#fff}
+.brand-text .subtitle{margin:0;font-size:0.85rem;color:rgba(255,255,255,0.85)}
+
+.title{margin:0 0 0.25rem 0;font-size:1.6rem;color:#fff}
+.subtitle-lead{margin:0 0 1rem 0;color:rgba(255,255,255,0.85)}
+
+.auth-form .form-group{margin-bottom:0.75rem}
+.center-card label,
+.center-card .auth-form label,
+.center-card .signup-panel label {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+.input-wrapper{position:relative;display:flex;align-items:center}
+.input-wrapper input{flex:1;padding:0.95rem 3.25rem 0.95rem 1rem;border-radius:10px;border:1px solid rgba(255,255,255,0.18) !important;background:rgba(255,255,255,0.04) !important;color:#ffffff !important}
+.input-wrapper i{position:absolute;right:12px;color:rgba(255,255,255,0.85) !important}
+.input-wrapper input::placeholder{color:rgba(255,255,255,0.65) !important}
+
+/* ensure input text is white even on autofill */
+.center-card input,
+.center-card textarea {
+  color: #fff !important;
+}
+
+/* make small helper/link text visible */
+.center-card .link-forgot,
+.center-card .signup-message {
+  color: rgba(255,255,255,0.9);
+}
+.input-wrapper.password .btn-icon{position:absolute;right:8px;border:none;background:transparent;padding:0.35rem;border-radius:6px;cursor:pointer}
+.input-wrapper.password .btn-icon i{color:#334155}
+
+.actions-row{display:flex;align-items:center;gap:0.75rem;margin-top:1rem}
+.btn{padding:0.9rem 1.25rem;border-radius:12px;border:none;cursor:pointer;font-size:1rem}
+.btn.primary{background:linear-gradient(90deg,#06b6a4,#10b981) !important;color:#fff !important;font-weight:800;padding:1.15rem 1.75rem !important;font-size:1.08rem;border-radius:14px !important}
+.btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.22) !important;color:#fff !important;padding:0.8rem 1.1rem}
+
+/* Make primary action buttons take more horizontal space on desktop */
+@media(min-width:700px){
+  .center-card .actions-row .btn.primary{min-width:220px}
+}
+.link-forgot{margin-left:auto;color:rgba(255,255,255,0.85);text-decoration:underline;font-size:0.95rem}
+.link-forgot{margin-left:auto;color:#0ea5a3;text-decoration:none;font-size:0.9rem}
+
+.divider{display:flex;align-items:center;gap:1rem;margin:1.25rem 0;color:rgba(255,255,255,0.65)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent)}
+
+.signup-panel{margin-top:0.75rem;padding-top:0.75rem;border-top:1px dashed rgba(255,255,255,0.06)}
+.signup-message{margin-top:0.5rem;color:rgba(255,255,255,0.95)}
+
+@media (max-width:640px){
+  .center-card{padding:1.25rem;border-radius:12px}
+  .brand-mark{width:48px;height:48px}
+}
+
 
 .split {
   max-width: 1200px;

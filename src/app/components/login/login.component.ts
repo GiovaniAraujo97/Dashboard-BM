@@ -24,6 +24,12 @@ export class LoginComponent {
   signupSenhaConfirm: string = '';
   signupMessage: string = '';
 
+  // UI toggles
+  showSignup: boolean = false;
+  showLoginPassword: boolean = false;
+  showSignupPassword: boolean = false;
+  showSignupConfirm: boolean = false;
+
   constructor(private router: Router, private auth: AuthService) {}
  
 

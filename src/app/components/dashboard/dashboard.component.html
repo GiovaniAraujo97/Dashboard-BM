@@ -13,10 +13,10 @@
       <app-sidebar (viewChange)="onViewChange($event)"></app-sidebar>
       
       <main class="dashboard-main">
-        <div class="container" *ngIf="currentView === 'dashboard'">
+        <div *ngIf="currentView === 'dashboard'">
           <div class="page-header">
             <h1 class="page-title">Dashboard Financeiro</h1>
-            <p class="page-subtitle">Gestão de Empréstimos Quinzenais</p>
+            <p class="page-subtitle">Gestão de Empréstimos Quinzenais e Mensais</p>
           </div>
 
           <section class="metrics-section">

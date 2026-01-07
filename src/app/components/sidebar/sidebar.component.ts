@@ -31,7 +31,7 @@ export class SidebarComponent implements OnInit {
     {
       id: 'clientes',
       label: 'Clientes',
-      icon: '�'
+      icon: '👥'
     },
     {
       id: 'emprestimos',
@@ -42,12 +42,12 @@ export class SidebarComponent implements OnInit {
     {
       id: 'pagamentos',
       label: 'Pagamentos',
-      icon: '�'
+      icon: '💳'
     },
     {
       id: 'cobranca',
       label: 'Cobrança',
-      icon: '�',
+      icon: '📞',
       badge: 0
     },
     {

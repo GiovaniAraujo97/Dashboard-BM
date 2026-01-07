@@ -1,8 +1,8 @@
 <div class="clientes-container">
   <div class="page-header">
     <div class="header-content">
-      <h1>Gestão de Clientes</h1>
-      <p>Cadastro e controle de clientes da carteira de empréstimos</p>
+      <h1>Clientes</h1>
+      <p>Gerencie seus clientes e dados de contato</p>
     </div>
     <button class="btn-primary" (click)="openModal()">
       <span class="icon">👤</span>
@@ -14,6 +14,7 @@
     <div class="search-box">
       <input 
         type="text" 
+        aria-label="Pesquisar clientes"
         placeholder="Buscar por nome, CPF, email ou telefone..."
         [(ngModel)]="searchTerm"
         class="search-input">
@@ -21,12 +22,15 @@
     </div>
     
     <div class="filters">
-      <select class="status-filter">
-        <option value="">Todos os Status</option>
-        <option value="ativo">Ativo</option>
-        <option value="inativo">Inativo</option>
-        <option value="bloqueado">Bloqueado</option>
-      </select>
+      <label for="statusFilter" class="filter-label">Filtrar:</label>
+      <div class="select-wrap">
+        <select id="statusFilter" aria-label="Filtrar por status" class="status-filter">
+          <option value="">Todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+          <option value="bloqueado">Bloqueado</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -57,7 +61,7 @@
       </div>
     </div>
 
-    <div class="table-container">
+    <div class="table-container card-glass">
       <table>
         <thead>
           <tr>
@@ -106,10 +110,10 @@
             </td>
             <td>
               <div class="acoes">
-                <button class="btn-edit" (click)="openModal(cliente)" title="Editar">
+                <button class="btn-action" (click)="openModal(cliente)" title="Editar">
                   ✏️
                 </button>
-                <button class="btn-delete" (click)="confirmarExclusao(cliente)" title="Excluir">
+                <button class="btn-action btn-danger" (click)="confirmarExclusao(cliente)" title="Excluir">
                   🗑️
                 </button>
               </div>

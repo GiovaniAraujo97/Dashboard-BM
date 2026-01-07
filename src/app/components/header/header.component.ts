@@ -136,13 +136,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   atualizarNotificacoes() {
-    if (this.emprestimos.length === 0 || this.clientes.length === 0) return;
+    // Only show notifications for loans that are due today and have a valid client
+    if (this.emprestimos.length === 0 || this.clientes.length === 0) {
+      this.notificacoes = [];
+      return;
+    }
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    
-    const amanha = new Date(hoje);
-    amanha.setDate(amanha.getDate() + 1);
 
     this.notificacoes = [];
 
@@ -150,59 +151,35 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (emprestimo.status === 'pago') return;
 
       const cliente = this.clientes.find(c => c.id === emprestimo.clienteId);
-      const nomeCliente = cliente ? cliente.nome : 'Cliente não encontrado';
-      
+      if (!cliente) return; // skip if client doesn't exist
+
       const vencimento = new Date(emprestimo.proximoVencimento);
       vencimento.setHours(0, 0, 0, 0);
-      
+
       const diffTime = vencimento.getTime() - hoje.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      // Empréstimos em atraso
-      if (diffDays < 0) {
-        this.notificacoes.push({
-          id: emprestimo.id,
-          tipo: 'atraso',
-          emprestimo,
-          cliente: nomeCliente,
-          message: `Empréstimo em atraso há ${Math.abs(diffDays)} dias`,
-          diasAtraso: Math.abs(diffDays),
-          valor: emprestimo.valorOriginal * (emprestimo.percentualJuros / 100) + (Math.abs(diffDays) * 50),
-          urgencia: 'alta'
-        });
-      }
-      // Empréstimos vencendo hoje
-      else if (diffDays === 0) {
+      // Only show notifications for loans due today
+      if (diffDays === 0) {
         this.notificacoes.push({
           id: emprestimo.id,
           tipo: 'vencimento',
           emprestimo,
-          cliente: nomeCliente,
-          message: `Vencimento hoje - Renovação disponível`,
+          cliente: cliente.nome,
+          message: `Empréstimo vence hoje`,
           valor: emprestimo.valorOriginal * (emprestimo.percentualJuros / 100),
           urgencia: 'alta'
         });
       }
-      // Empréstimos vencendo amanhã
-      else if (diffDays === 1) {
-        this.notificacoes.push({
-          id: emprestimo.id,
-          tipo: 'renovacao',
-          emprestimo,
-          cliente: nomeCliente,
-          message: `Vence amanhã - Prepare a renovação`,
-          valor: emprestimo.valorOriginal * (emprestimo.percentualJuros / 100),
-          urgencia: 'media'
-        });
-      }
     });
 
-    // Ordenar por urgência e data
-    this.notificacoes.sort((a, b) => {
-      if (a.urgencia === 'alta' && b.urgencia !== 'alta') return -1;
-      if (a.urgencia !== 'alta' && b.urgencia === 'alta') return 1;
-      return new Date(a.emprestimo.proximoVencimento).getTime() - new Date(b.emprestimo.proximoVencimento).getTime();
-    });
+    // Orden by soonest (though all are today) and keep stable order
+    this.notificacoes.sort((a, b) => a.id - b.id);
+  }
+
+  // Allow user to dismiss a notification
+  removerNotificacao(id: number) {
+    this.notificacoes = this.notificacoes.filter(n => n.id !== id);
   }
 
   toggleNotifications() {
@@ -319,6 +296,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   async onSincronizar() {
+    /*
     try {
       await this.emprestimoService.sincronizar();
       // feedback rápido ao usuário
@@ -327,6 +305,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.error('Erro ao forçar sincronização:', err);
       alert('Falha ao solicitar sincronização. Veja o console para detalhes.');
     }
+    */
   }
 
   onVoltarDashboard() {

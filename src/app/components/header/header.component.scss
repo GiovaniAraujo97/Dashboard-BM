@@ -134,11 +134,11 @@
         display: none; // Esconder ações rápidas em mobile
       }
       
-      .btn-action {
+        .btn-action {
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.8rem 1.8rem;
+        	padding: 0.6rem 1rem;
         border: none;
         border-radius: 12px;
         font-weight: 600;
@@ -149,7 +149,7 @@
         overflow: hidden;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        min-width: 160px;
+          min-width: 120px;
         justify-content: center;
         
         &::before {

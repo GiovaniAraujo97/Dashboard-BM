@@ -9,9 +9,9 @@
         <span class="voltar-text">{{ getViewTitle() }}</span>
       </button>
 
-      <div class="logo" [class.logo-compacto]="mostrarBotaoVoltar">
+      <div class="logo logo-compacto">
         <h1>BM Empréstimos</h1>
-        <span class="company-subtitle">Empréstimos Quinzenais</span>
+        <span class="company-subtitle">Empréstimos Quinzenais e Mensais</span>
       </div>
     </div>
 
@@ -30,10 +30,7 @@
           <span class="action-icon">💳</span>
           <span class="action-text">Pagamento</span>
         </button>
-        <button class="btn-action" (click)="onSincronizar()" title="Forçar sincronização">
-          <span class="action-icon">🔁</span>
-          <span class="action-text">Sincronizar</span>
-        </button>
+        <!-- Sincronizar button removed for cleaner header -->
       </div>
     </div>
 
@@ -75,6 +72,10 @@
               <small>Todos os empréstimos estão em dia</small>
             </div>
 
+            <div *ngIf="notificacoes.length === 0" class="no-notifications">
+              <p>Sem notificações para hoje.</p>
+            </div>
+
             <div *ngFor="let notificacao of notificacoes" 
                  class="notification-item"
                  [class]="'urgencia-' + notificacao.urgencia">
@@ -102,6 +103,8 @@
                   </span>
                 </div>
               </div>
+
+              <button class="notification-dismiss" (click)="removerNotificacao(notificacao.id)" title="Descartar">✕</button>
             </div>
           </div>
 
@@ -151,9 +154,9 @@
             
             <div class="user-dropdown-actions">
               <button class="dropdown-action-btn" (click)="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sair do Sistema</span>
-              </button>
+                  <span class="action-icon">🚪</span>
+                  <span>Sair do Sistema</span>
+                </button>
             </div>
           </div>
         </div>
@@ -217,6 +220,7 @@
               <span class="mobile-notification-icon">{{ getIconeNotificacao(notificacao.tipo) }}</span>
               <strong>{{ notificacao.cliente }}</strong>
               <span class="mobile-notification-value">{{ formatarMoeda(notificacao.valor) }}</span>
+              <button class="mobile-notification-dismiss" (click)="removerNotificacao(notificacao.id)" title="Descartar">✕</button>
             </div>
             
             <p class="mobile-notification-message">{{ notificacao.message }}</p>
@@ -238,7 +242,7 @@
           <span class="mobile-user-role">{{ currentUser.role }}</span>
         </div>
         <button class="mobile-logout-btn" (click)="logout()">
-          <i class="fas fa-sign-out-alt"></i>
+          <span class="mobile-logout-icon">🚪</span>
           <span>Sair</span>
         </button>
       </div>

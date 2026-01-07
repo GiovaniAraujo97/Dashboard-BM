@@ -1,143 +1,80 @@
-<div class="login-container">
-  <div class="split">
-    <!-- LEFT: Login Card -->
-    <div class="left">
-      <div class="login-card">
-        <div class="login-top">
-          <div class="brand">
-            <div class="brand-mark">BM</div>
-            <div class="brand-text">
-              <h1>BM Empréstimos</h1>
-              <p class="subtitle">Painel de Gestão Financeira</p>
-            </div>
-          </div>
-          <h2 class="welcome">Bem-vindo de volta</h2>
-          <p class="lead">Entre com sua conta para acessar seu painel e gerenciar clientes e empréstimos.</p>
-        </div>
-
-        <form class="login-form" (ngSubmit)="fazerLogin()">
-          <div class="form-group">
-            <label for="email">E-mail</label>
-            <div class="input-wrapper">
-              <input
-                type="email"
-                id="email"
-                [(ngModel)]="loginEmail"
-                name="loginEmail"
-                placeholder="seu@exemplo.com"
-                autocomplete="email"
-                [disabled]="carregando"
-                (keydown)="onEnterPress($event)"
-                (input)="loginErro = false"
-                class="form-input"
-                required
-              />
-              <i class="fas fa-envelope input-icon"></i>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="senha">Senha</label>
-            <div class="input-wrapper">
-              <input
-                type="password"
-                id="senha"
-                [(ngModel)]="loginSenha"
-                name="loginSenha"
-                placeholder="Digite sua senha"
-                autocomplete="current-password"
-                [disabled]="carregando"
-                (keydown)="onEnterPress($event)"
-                (input)="loginErro = false"
-                class="form-input"
-                required
-                [class.error]="loginErro"
-              />
-              <i class="fas fa-lock input-icon"></i>
-            </div>
-
-            <div class="error-message" [class.show]="loginErro">
-              <i class="fas fa-exclamation-triangle"></i>
-              Credenciais inválidas. Tente novamente.
-            </div>
-          </div>
-
-          <div class="actions-row">
-            <button
-              type="submit"
-              class="btn-login"
-              [disabled]="(!loginEmail.trim() || !loginSenha.trim()) || carregando"
-            >
-              <span *ngIf="!carregando">
-                <i class="fas fa-sign-in-alt"></i>
-                Entrar
-              </span>
-              <span *ngIf="carregando" class="loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                Processando...
-              </span>
-            </button>
-          </div>
-
-          <div class="login-footer">
-            <div class="help-text">
-              <a class="forgot" routerLink="/forgot">Esqueceu a senha?</a>
-              <span class="separator">•</span>
-              <a class="support">Suporte</a>
-            </div>
-          </div>
-        </form>
+<div class="login-wrapper">
+  <div class="login-card center-card">
+    <div class="brand">
+      <div class="brand-mark">BM</div>
+      <div class="brand-text">
+        <h1>BM Empréstimos</h1>
+        <p class="subtitle">Painel de Gestão Financeira</p>
       </div>
     </div>
 
-    <!-- RIGHT: Promo / Signup -->
-    <div class="right">
-      <div class="promo-panel">
-        <div class="promo-content">
-          <h2>Criar nova conta</h2>
-          <p class="promo-lead">Rápido, seguro e pronto para uso. Crie sua conta e comece a organizar seus clientes.</p>
+    <h2 class="title">Bem-vindo</h2>
+    <p class="subtitle-lead">Entre com sua conta para acessar o painel.</p>
 
-          <div class="signup-card">
-            <div class="small">Registro</div>
-            <div class="form-group">
-              <label for="signup-email">E-mail</label>
-              <div class="input-wrapper">
-                <input id="signup-email" name="signupEmail" type="email" [(ngModel)]="signupEmail" placeholder="seu@exemplo.com" class="form-input" />
-                
-                <i class="fas fa-envelope input-icon"></i>
-              </div>
-            </div>
+    <form class="auth-form" (ngSubmit)="fazerLogin()">
+      <div class="form-group">
+        <label>E-mail</label>
+        <div class="input-wrapper">
+          <input type="email" [(ngModel)]="loginEmail" name="loginEmail" placeholder="seu@exemplo.com" required />
+          <i class="fas fa-envelope"></i>
+        </div>
+      </div>
 
-            <div class="form-row">
-              <div class="form-group half">
-                <label for="signup-senha">Senha</label>
-                <div class="input-wrapper">
-                  <input id="signup-senha" name="signupSenha" type="password" [(ngModel)]="signupSenha" placeholder="Senha" class="form-input" />
-                  
-                  <i class="fas fa-lock input-icon"></i>
-                </div>
-              </div>
-              <div class="form-group half">
-                <label for="signup-senha-confirm">Confirme</label>
-                <div class="input-wrapper">
-                  <input id="signup-senha-confirm" name="signupSenhaConfirm" type="password" [(ngModel)]="signupSenhaConfirm" placeholder="Confirme a senha" class="form-input" />
-                  <i class="fas fa-check input-icon"></i>
-                </div>
-              </div>
-            </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <div class="input-wrapper password">
+          <input [type]="showLoginPassword ? 'text' : 'password'" [(ngModel)]="loginSenha" name="loginSenha" placeholder="Digite sua senha" required />
+          <button type="button" class="btn-icon" (click)="showLoginPassword = !showLoginPassword" aria-label="Mostrar senha">
+            <i [class]="showLoginPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
 
-            <div class="actions-row">
-              <button type="button" class="btn-signup" (click)="fazerCadastro()" [disabled]="(!signupEmail.trim() || !signupSenha) || signupSenha !== signupSenhaConfirm">
-                <i class="fas fa-user-plus"></i> Criar conta
-              </button>
-            </div>
+      <div class="actions-row">
+        <button class="btn primary" type="submit" [disabled]="!loginEmail || !loginSenha">Entrar</button>
+        <a class="link-forgot" routerLink="/forgot">Esqueceu a senha?</a>
+      </div>
+    </form>
 
-            <div class="signup-message" *ngIf="signupMessage">{{ signupMessage }}</div>
+    <div class="divider">OU</div>
+
+    <div class="signup-toggle">
+      <button class="btn outline" (click)="showSignup = !showSignup">
+        <i class="fas fa-user-plus"></i>
+        <span *ngIf="!showSignup">Criar nova conta</span>
+        <span *ngIf="showSignup">Fechar cadastro</span>
+      </button>
+    </div>
+
+    <div class="signup-panel" *ngIf="showSignup">
+      <form (ngSubmit)="fazerCadastro()">
+        <div class="form-group">
+          <label>E-mail</label>
+          <div class="input-wrapper"><input type="email" [(ngModel)]="signupEmail" name="signupEmail" placeholder="seu@exemplo.com" required /><i class="fas fa-envelope"></i></div>
+        </div>
+
+        <div class="form-group">
+          <label>Senha</label>
+          <div class="input-wrapper password">
+            <input [type]="showSignupPassword ? 'text' : 'password'" [(ngModel)]="signupSenha" name="signupSenha" placeholder="Senha" required />
+            <button type="button" class="btn-icon" (click)="showSignupPassword = !showSignupPassword"><i [class]="showSignupPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i></button>
           </div>
         </div>
 
-        <!-- illustration removed as requested -->
-      </div>
+        <div class="form-group">
+          <label>Confirme a senha</label>
+          <div class="input-wrapper password">
+            <input [type]="showSignupConfirm ? 'text' : 'password'" [(ngModel)]="signupSenhaConfirm" name="signupSenhaConfirm" placeholder="Confirme a senha" required />
+            <button type="button" class="btn-icon" (click)="showSignupConfirm = !showSignupConfirm"><i [class]="showSignupConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i></button>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button class="btn primary" type="submit" [disabled]="!signupEmail || !signupSenha || signupSenha !== signupSenhaConfirm">Criar conta</button>
+        </div>
+      </form>
+      <div class="signup-message" *ngIf="signupMessage">{{ signupMessage }}</div>
     </div>
+
   </div>
 </div>
