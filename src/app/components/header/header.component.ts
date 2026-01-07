@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, OnInit, OnDestroy, HostListener, Input
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { EmprestimoService, Emprestimo, Cliente } from '../../services/dashboard.service';
+import { StorageService } from '../../services/storage.service';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
@@ -32,7 +33,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   
   @Input() currentView: string = 'dashboard';
 
-  private subscriptions: Subscription[] = [];
+  private subscriptions: any[] = [];
   
   currentUser = {
     name: 'Administrador',
@@ -65,7 +66,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.notificacoes.filter(n => n.urgencia === 'alta').length;
   }
 
-  constructor(private emprestimoService: EmprestimoService, private router: Router, private auth: AuthService) {}
+  constructor(private emprestimoService: EmprestimoService, private router: Router, private auth: AuthService, private storageService: StorageService) {}
 
   ngOnInit() {
     // Carregar dados e monitorar mudanças
@@ -80,10 +81,58 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(emprestimosSubscription, clientesSubscription);
+
+    // populate current user from auth session (email)
+    (async () => {
+      try {
+        const session = await this.auth.getSession();
+        const user = session?.user ?? session?.user ?? null;
+        if (user && (user as any).email) {
+          this.currentUser.name = (user as any).email;
+        }
+      } catch (err) {
+        console.debug('Header: failed to read session', err);
+      }
+    })();
+
+    // subscribe to auth state changes to update UI when user logs in/out
+    try {
+      const authSub: any = this.auth.onAuthStateChange((event: string, session: any) => {
+        const user = session?.user ?? null;
+        if (user && user.email) {
+          this.currentUser.name = user.email;
+        } else {
+          // reset to default when signed out
+          this.currentUser.name = 'Administrador';
+        }
+      });
+      if (authSub) this.subscriptions.push(authSub);
+    } catch (err) {
+      console.debug('Header: could not subscribe to auth changes', err);
+    }
   }
 
   ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach(sub => {
+      try {
+        if (!sub) return;
+        const anySub = sub as any;
+        if (anySub && typeof anySub.unsubscribe === 'function') {
+          anySub.unsubscribe();
+          return;
+        }
+        if (anySub && anySub.subscription && typeof anySub.subscription.unsubscribe === 'function') {
+          anySub.subscription.unsubscribe();
+          return;
+        }
+        if (typeof anySub === 'function') {
+          anySub();
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+    });
   }
 
   atualizarNotificacoes() {
@@ -200,6 +249,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  // Open file picker (triggered from template) and upload avatar
+  async onChangeAvatar(fileInput: HTMLInputElement) {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    try {
+      const url = await this.storageService.uploadAvatar(file);
+      if (url) {
+        this.currentUser.avatar = url;
+      } else {
+        alert('Falha ao enviar a imagem. Veja o console para detalhes.');
+      }
+    } catch (err) {
+      console.error('Erro upload avatar:', err);
+      alert('Falha ao enviar a imagem.');
+    } finally {
+      // reset input
+      try { fileInput.value = ''; } catch (e) { /* ignore */ }
+    }
   }
 
   getIconeNotificacao(tipo: string): string {

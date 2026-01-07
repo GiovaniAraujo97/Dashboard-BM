@@ -130,9 +130,6 @@
               <button type="button" class="btn-signup" (click)="fazerCadastro()" [disabled]="(!signupEmail.trim() || !signupSenha) || signupSenha !== signupSenhaConfirm">
                 <i class="fas fa-user-plus"></i> Criar conta
               </button>
-              <button type="button" class="btn-test" (click)="testarConexao()">
-                <i class="fas fa-wifi"></i> Testar conexão
-              </button>
             </div>
 
             <div class="signup-message" *ngIf="signupMessage">{{ signupMessage }}</div>

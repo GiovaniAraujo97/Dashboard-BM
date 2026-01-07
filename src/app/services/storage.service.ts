@@ -38,6 +38,67 @@ export class StorageService {
     }
   }
 
+  // Upload avatar image for current user to Supabase Storage (bucket 'avatars')
+  // Returns a public URL string or null on failure.
+  async uploadAvatar(file: File): Promise<string | null> {
+    if (!this.supabase) {
+      console.warn('StorageService: supabase not available, storing avatar locally');
+      // fallback: store as data URL in localStorage
+      try {
+        const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error('File read error'));
+          reader.readAsDataURL(file);
+        });
+        const key = this.userId ? `user_avatar_${this.userId}` : `user_avatar_anonymous`;
+        localStorage.setItem(key, dataUrl);
+        return dataUrl;
+      } catch (err) {
+        console.error('Failed to store avatar locally:', err);
+        return null;
+      }
+    }
+
+    if (!this.userId) {
+      console.warn('StorageService: user not authenticated, cannot upload avatar');
+      return null;
+    }
+
+    try {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const path = `avatars/${this.userId}/${timestamp}_${safeName}`;
+
+      // upload
+      const uploadRes = await this.supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      if (uploadRes.error) {
+        console.warn('StorageService: upload error', uploadRes.error.message || uploadRes.error);
+        return null;
+      }
+
+      // get public URL
+      const { data: urlData } = this.supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = (urlData && (urlData as any).publicUrl) ? (urlData as any).publicUrl : null;
+
+      // Optionally, persist the avatar URL in user_data so it syncs
+      try {
+        const current = this.getCurrentData();
+        // store under a top-level metadata field (user-specific)
+        const updated = { ...current };
+        // not altering schema deeply; clients/profile storage can be added as needed
+        localStorage.setItem(`user_avatar_url_${this.userId}`, publicUrl || '');
+      } catch (e) {
+        // ignore
+      }
+
+      return publicUrl;
+    } catch (err) {
+      console.error('StorageService: uploadAvatar failed', err);
+      return null;
+    }
+  }
+
   private async initForUser() {
     try {
       const session = await this.auth.getSession();

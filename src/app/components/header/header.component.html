@@ -115,12 +115,17 @@
 
       <div class="user-profile">
         <button class="user-btn" (click)="toggleUserMenu()">
-          <img 
-            [src]="currentUser.avatar" 
-            [alt]="currentUser.name"
-            class="user-avatar"
-            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTIwIDIwQzIyLjc2MTQgMjAgMjUgMTcuNzYxNCAyNSAxNUMyNSAxMi4yMzg2IDIyLjc2MTQgMTAgMjAgMTBDMTcuMjM4NiAxMCAxNSAxMi4yMzg2IDE1IDE1QzE1IDE3Ljc2MTQgMTcuMjM4NiAyMCAyMCAyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDIyLjVDMTUuODU3OSAyMi41IDEyLjUgMjUuODU3OSAxMi41IDMwVjMyLjVDMTIuNSAzMy4zMjg0IDEzLjE3MTYgMzQgMTQgMzRIMjZDMjYuODI4NCAzNCAyNy41IDMzLjMyODQgMjcuNSAzMlYzMEMyNy41IDI1Ljg1NzkgMjQuMTQyMSAyMi41IDIwIDIyLjVaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo='"
-          >
+          <input type="file" accept="image/*" style="display:none" #avatarInput (change)="onChangeAvatar(avatarInput)" />
+          <label style="cursor:pointer; display:flex; align-items:center;" (click)="avatarInput.click()">
+            <img 
+              [src]="currentUser.avatar" 
+              [alt]="currentUser.name"
+              class="user-avatar"
+              onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTIwIDIwQzIyLjc2MTQgMjAgMjUgMTcuNzYxNCAyNSAxNUMyNSAxMi4yMzg2IDIyLjc2MTQgMTAgMjAgMTBDMTcuMjM4NiAxMCAxNSAxMi4yMzg2IDE1IDE1QzE1IDE3Ljc2MTQgMTcuMjM4NiAyMCAyMCAyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDIyLjVDMTUuODU3OSAyMi41IDEyLjUgMjUuODU3OSAxMi41IDMwVjMyLjVDMTIuNSAzMy4zMjg0IDEzLjE3MTYgMzQgMTQgMzRIMjZDMjYuODI4NCAzNCAyNy41IDMzLjMyODQgMjcuNSAzMlYzMEMyNy41IDI1Ljg1NzkgMjQuMTQyMSAyMi41IDIwIDIyLjVaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo='"
+            >
+          </label>
+        
+          <input type="file" accept="image/*" style="display:none" #avatarInput (change)="onChangeAvatar(avatarInput)" />
           <div class="user-info">
             <span class="user-name">{{ currentUser.name }}</span>
             <span class="user-role">{{ currentUser.role }}</span>

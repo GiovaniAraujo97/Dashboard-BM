@@ -25,23 +25,7 @@ export class LoginComponent {
   signupMessage: string = '';
 
   constructor(private router: Router, private auth: AuthService) {}
-
-  async testarConexao() {
-    try {
-      const client = this.auth.getClient();
-      if (!client) {
-        this.signupMessage = 'Cliente Supabase não inicializado (verifique SUPABASE_ANON_KEY).';
-        return;
-      }
-      // fazer uma chamada leve para o supabase (lista de tables ou ping) — usar getSession como não-invasivo
-      const session = await this.auth.getSession();
-      this.signupMessage = session ? 'Conexão OK (sessão ativa).' : 'Conexão OK (sem sessão).';
-    } catch (err: any) {
-      console.error('Erro testarConexao:', err);
-      const rawMsg = err?.message || (err && typeof err === 'object' ? JSON.stringify(err) : String(err));
-      this.signupMessage = 'Teste de conexão falhou: ' + rawMsg;
-    }
-  }
+ 
 
   async fazerLogin() {
     if (!this.loginEmail.trim() || !this.loginSenha.trim()) return;
