@@ -58,6 +58,7 @@ export class EmprestimosComponent implements OnInit {
       valorOriginal: ['', [Validators.required, Validators.min(1)]],
       percentualJuros: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       frequencia: ['mensal', Validators.required],
+      dataContrato: [''],
       observacoes: ['']
     });
   }
@@ -136,7 +137,8 @@ export class EmprestimosComponent implements OnInit {
       clienteId: emprestimo.clienteId,
       valorOriginal: emprestimo.valorOriginal,
       percentualJuros: emprestimo.percentualJuros,
-      observacoes: emprestimo.observacoes
+      observacoes: emprestimo.observacoes,
+      dataContrato: emprestimo.dataContrato ? new Date(emprestimo.dataContrato).toISOString().slice(0,10) : ''
     });
     this.mostrarModalEditar = true;
   }
@@ -180,16 +182,23 @@ export class EmprestimosComponent implements OnInit {
       }
       
       try {
-        // compute contract date and next due date based on frequency
-        const dataContrato = new Date();
+        // allow historical contract date (dataContrato) to be provided
         const frequencia = dadosEmprestimo.frequencia || 'mensal';
-        const proximoVencimento = new Date(dataContrato);
-        if (frequencia === 'quinzenal') {
-          proximoVencimento.setDate(proximoVencimento.getDate() + 15);
+        let dataContrato: Date;
+        if (dadosEmprestimo.dataContrato) {
+          if (typeof dadosEmprestimo.dataContrato === 'string') {
+            const m = dadosEmprestimo.dataContrato.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (m) {
+              dataContrato = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            } else {
+              dataContrato = new Date(dadosEmprestimo.dataContrato);
+            }
+          } else {
+            dataContrato = new Date(dadosEmprestimo.dataContrato);
+          }
         } else {
-          proximoVencimento.setDate(proximoVencimento.getDate() + 30);
+          dataContrato = new Date();
         }
-
         // ensure numeric calculations
         const valorOriginal = Number(dadosEmprestimo.valorOriginal) || 0;
         const percentualJuros = Number(dadosEmprestimo.percentualJuros) || 0;
@@ -205,7 +214,8 @@ export class EmprestimosComponent implements OnInit {
           valorPago: 0,
           saldoDevedor: Math.max(0, valorComJuros),
           dataContrato: dataContrato,
-          proximoVencimento: proximoVencimento,
+          // proximoVencimento will be computed by service when not provided
+          proximoVencimento: dadosEmprestimo.proximoVencimento ? new Date(dadosEmprestimo.proximoVencimento) : undefined,
           status: 'ativo',
           ciclosVencidos: 0
         } as any;

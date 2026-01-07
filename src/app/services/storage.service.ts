@@ -412,14 +412,24 @@ export class StorageService {
     if (!value) return null;
     // accept ISO, timestamps, or Brazilian format DD/MM/YYYY
     if (typeof value === 'string') {
+      // Brazilian format DD/MM/YYYY -> parse as local date
       const brazilMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (brazilMatch) {
         const [, dd, mm, yyyy] = brazilMatch;
-        const iso = `${yyyy}-${mm}-${dd}`;
-        const d = new Date(iso);
+        const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+        return isFinite(d.getTime()) ? d.toISOString() : null;
+      }
+
+      // Date-only ISO YYYY-MM-DD -> parse as local date (avoid UTC interpretation)
+      const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (isoDateMatch) {
+        const [, yyyy, mm, dd] = isoDateMatch;
+        const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
         return isFinite(d.getTime()) ? d.toISOString() : null;
       }
     }
+
+    // Fallback: let the Date constructor handle timestamps and full ISO strings
     const d = new Date(value);
     return isFinite(d.getTime()) ? d.toISOString() : null;
   }

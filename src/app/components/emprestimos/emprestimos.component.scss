@@ -285,7 +285,7 @@
         display: block; 
         margin-bottom: 8px; 
         font-weight: 500; 
-        color: rgba(255, 255, 255, 0.9);
+        color: #ffffff;
         font-size: 0.9rem;
       }
       
@@ -314,6 +314,59 @@
         font-size: 0.8rem;
         margin-top: 5px;
         display: block;
+      }
+
+      /* high-contrast date input + helper text */
+      input[type="date"] {
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+      }
+
+      .form-group small {
+        display: block;
+        margin-top: 6px;
+        color: #ffffff !important;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      /* Force white text for small helper inside modal (higher specificity) */
+      .modal .form-group small {
+        color: #ffffff !important;
+      }
+
+      .helper-strong {
+        display: block;
+        margin-top: 8px;
+        background: rgba(255,255,255,0.08);
+        color: #ffffff;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      /* Date input value color (some browsers need -webkit-text-fill-color) */
+      input[type="date"] {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #d1d5db !important;
+        padding: 10px 12px !important;
+        -webkit-text-fill-color: #0f172a !important;
+      }
+
+      /* If date input shows a placeholder, make it white in modal */
+      .modal input[type="date"]::placeholder {
+        color: #ffffff !important;
+        opacity: 1 !important;
+      }
+
+      /* placeholder contrast for inputs */
+      input::placeholder, textarea::placeholder {
+        color: rgba(255,255,255,0.95);
+        opacity: 1;
       }
     }
 

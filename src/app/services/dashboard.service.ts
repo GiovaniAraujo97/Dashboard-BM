@@ -141,6 +141,23 @@ export class EmprestimoService {
     const valorPago = Number((emprestimo as any).valorPago) || 0;
     const saldoDevedor = Number((emprestimo as any).saldoDevedor) || Math.max(0, valorComJuros - valorPago);
 
+    // normalize dataContrato and frequency
+    const dataContrato = (emprestimo as any).dataContrato ? new Date((emprestimo as any).dataContrato) : new Date();
+    const frequencia = (emprestimo as any).frequencia ?? 'mensal';
+
+    // determine next due date and cycles: prefer provided proximoVencimento, otherwise compute from contrato
+    let proximoVencimentoValue: Date;
+    let ciclosPassados = 0;
+    if ((emprestimo as any).proximoVencimento) {
+      proximoVencimentoValue = new Date((emprestimo as any).proximoVencimento);
+      // compute cycles passed from contract to provided next date
+      ciclosPassados = this.computeCiclosVencidos(dataContrato, proximoVencimentoValue, frequencia as any);
+    } else {
+      const computed = this.computeNextAndCiclosFromContrato(dataContrato, frequencia as any);
+      proximoVencimentoValue = computed.proximoVencimento;
+      ciclosPassados = computed.ciclosPassados;
+    }
+
     const novoEmprestimo: Emprestimo = {
       id: newId,
       clienteId: Number((emprestimo as any).clienteId) || 0,
@@ -148,13 +165,13 @@ export class EmprestimoService {
       valorOriginal: valorOriginal,
       percentualJuros: percentualJuros,
       valorComJuros: valorComJuros,
-      dataContrato: (emprestimo as any).dataContrato ? new Date((emprestimo as any).dataContrato) : new Date(),
-      proximoVencimento: (emprestimo as any).proximoVencimento ? new Date((emprestimo as any).proximoVencimento) : new Date(),
-      frequencia: (emprestimo as any).frequencia ?? 'mensal',
+      dataContrato: dataContrato,
+      proximoVencimento: proximoVencimentoValue,
+      frequencia: frequencia as any,
       status: (emprestimo as any).status ?? 'ativo',
       valorPago: valorPago,
       saldoDevedor: saldoDevedor,
-      ciclosVencidos: Number((emprestimo as any).ciclosVencidos) || 0,
+      ciclosVencidos: Number((emprestimo as any).ciclosVencidos) || ciclosPassados,
       observacoes: (emprestimo as any).observacoes
     } as Emprestimo;
 
@@ -209,6 +226,64 @@ export class EmprestimoService {
 
     await this.storageService.updateEmprestimo(emprestimo);
     return novoVencimento;
+  }
+
+  /**
+   * Given a contract date and a frequency, compute the next upcoming due date.
+   * If the contract date is in the past, advance by 15 or 30 day steps until a date
+   * after today is reached (or equal to today). This supports importing historical active loans.
+   */
+  private computeNextVencimentoFromContrato(dataContrato: Date, frequencia: 'quinzenal' | 'mensal'): Date {
+    const hoje = new Date();
+    const dias = frequencia === 'quinzenal' ? 15 : 30;
+
+    // Start from contract date
+    let candidate = new Date(dataContrato);
+
+    // If candidate is already in the future (>= today), return candidate
+    // Otherwise, advance in steps until candidate >= today
+    while (candidate < new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) {
+      candidate.setDate(candidate.getDate() + dias);
+      // Safety: prevent infinite loops - cap at 1000 iterations
+      if (candidate.getFullYear() > 2100) break;
+    }
+
+    return candidate;
+  }
+
+  /**
+   * Compute both the next vencimento and how many cycles have passed since contract.
+   */
+  private computeNextAndCiclosFromContrato(dataContrato: Date, frequencia: 'quinzenal' | 'mensal') {
+    const hoje = new Date();
+    const dias = frequencia === 'quinzenal' ? 15 : 30;
+
+    let candidate = new Date(dataContrato);
+    let ciclos = 0;
+
+    // Advance until candidate > today (strictly after today)
+    while (candidate <= new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) {
+      candidate.setDate(candidate.getDate() + dias);
+      ciclos++;
+      if (candidate.getFullYear() > 2100) break;
+    }
+
+    return { proximoVencimento: candidate, ciclosPassados: Math.max(0, ciclos - 1) };
+  }
+
+  /**
+   * Compute number of full cycles (15-day or 30-day) that have passed from contract
+   * up to (but not including) the next due date. This approximates how many cycles
+   * were already completed and helps populate `ciclosVencidos` for imported loans.
+   */
+  private computeCiclosVencidos(dataContrato: Date, proximoVencimento: Date, frequencia: 'quinzenal' | 'mensal'): number {
+    const dias = frequencia === 'quinzenal' ? 15 : 30;
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const start = new Date(dataContrato.getFullYear(), dataContrato.getMonth(), dataContrato.getDate()).getTime();
+    const end = new Date(proximoVencimento.getFullYear(), proximoVencimento.getMonth(), proximoVencimento.getDate()).getTime();
+    const diffDays = Math.floor((end - start) / msPerDay);
+    const ciclos = Math.max(0, Math.floor(diffDays / dias));
+    return ciclos;
   }
 
   async limparEmprestimosOrfaos(): Promise<void> {

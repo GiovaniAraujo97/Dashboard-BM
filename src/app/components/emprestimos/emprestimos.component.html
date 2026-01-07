@@ -165,7 +165,7 @@
             Cliente é obrigatório
           </div>
         </div>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label for="valorOriginal">Valor do Empréstimo *</label>
@@ -176,7 +176,7 @@
               Valor deve ser maior que zero
             </div>
           </div>
-          
+
           <div class="form-group">
             <label for="percentualJuros">Taxa de Juros (%) *</label>
             <input type="number" id="percentualJuros" formControlName="percentualJuros" 
@@ -195,22 +195,28 @@
             <option value="quinzenal">Quinzenal (15 dias)</option>
           </select>
         </div>
-        
+
+        <div class="form-group">
+          <label for="dataContrato">Data do Contrato</label>
+          <input type="date" id="dataContrato" formControlName="dataContrato" />
+          <div class="helper-strong">Se este empréstimo foi contratado antes, defina a data para calcular vencimentos históricos.</div>
+        </div>
+
         <div class="form-group">
           <label for="observacoes">Observações</label>
           <textarea id="observacoes" formControlName="observacoes" 
                     rows="3" placeholder="Informações adicionais..."></textarea>
         </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="fecharModais()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary">
+            💰 Criar Empréstimo
+          </button>
+        </div>
       </form>
-    </div>
-    
-    <div class="modal-footer">
-      <button type="button" class="btn-secondary" (click)="fecharModais()">
-        Cancelar
-      </button>
-      <button type="button" class="btn-primary" (click)="criarEmprestimo()">
-        💰 Criar Empréstimo
-      </button>
     </div>
   </div>
 </div>
