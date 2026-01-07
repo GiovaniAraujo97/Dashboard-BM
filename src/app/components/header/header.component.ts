@@ -367,10 +367,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.warn('Erro ao deslogar via Supabase:', err);
     }
     try {
-      // remove local flag and force a full navigation to /login to ensure auth guards re-evaluate
+      // Try a second signOut using the underlying client if available
+      const client = this.auth.getClient();
+      if (client && client.auth && typeof client.auth.signOut === 'function') {
+        try { await client.auth.signOut(); } catch (e) { console.debug('client.signOut failed', e); }
+      }
+
+      // remove local auth flag
       localStorage.removeItem('authenticated');
-      // small delay to ensure signOut completes
-      window.location.href = '/login';
+
+      // Remove Supabase-related localStorage keys that may keep a session alive
+      try {
+        const keys = Object.keys(localStorage);
+        const supabaseKeyRegex = /supabase|sb:|sb-/i;
+        for (const k of keys) {
+          if (supabaseKeyRegex.test(k)) {
+            console.debug('Header: removing localStorage key', k);
+            localStorage.removeItem(k);
+          }
+        }
+      } catch (e) {
+        console.debug('Header: error clearing localStorage keys', e);
+      }
+
+      // Force navigation to login page (replace so history stays clean)
+      window.location.replace('/login');
     } catch (e) {
       console.error('Header: error during logout navigation', e);
       try { this.router.navigate(['/login']); } catch (er) { /* ignore */ }
