@@ -1,13 +1,13 @@
 .cobranca-container {
 	padding: 20px;
-	background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+	background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
 	min-height: 100vh;
-	color: white;
+	color: var(--secondary-900);
 
-	h2 { margin-bottom: 16px; color: white; }
+	h2 { margin-bottom: 16px; color: var(--secondary-50); }
 
-	.tabela-container {
-		background: rgba(255, 255, 255, 0.06);
+		.tabela-container {
+			background: rgba(255, 255, 255, 0.06);
 		backdrop-filter: blur(8px);
 		border-radius: 12px;
 		padding: 18px;
@@ -18,24 +18,24 @@
 			border-collapse: collapse;
 			font-size: 0.95rem;
 
-			th, td {
-				padding: 12px 10px;
-				text-align: left;
-				border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-			}
+				th, td {
+					padding: 12px 10px;
+					text-align: left;
+					border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+				}
 
-			thead th {
-				background: rgba(255,255,255,0.04);
-				font-weight: 600;
-				text-transform: uppercase;
-				font-size: 0.8rem;
-				letter-spacing: 0.4px;
-			}
+				thead th {
+					background: rgba(255,255,255,0.04);
+					font-weight: 600;
+					text-transform: uppercase;
+					font-size: 0.8rem;
+					letter-spacing: 0.4px;
+				}
 
 			tbody tr { transition: background-color 0.15s ease; &:hover { background: rgba(255,255,255,0.03); } }
 
 			.acoes { display:flex; gap:8px; align-items:center; }
-			.whats { font-size: 1.1rem; text-decoration: none; color: white; opacity: 0.9; padding:6px; border-radius:6px; }
+				.whats { font-size: 1.1rem; text-decoration: none; color: var(--secondary-50); opacity: 0.95; padding:6px; border-radius:6px; }
 
 			.payment-options {
 				margin-top:8px;
@@ -48,31 +48,31 @@
 			}
 
 			.amounts { display:flex; gap:12px; flex-direction:column; }
-			.amount-line strong { color: #FFEB3B; }
+				.amount-line strong { color: var(--warning-500); }
 
-			.pix-key { background: rgba(255,255,255,0.06); padding:8px 10px; border-radius:6px; font-weight:700; color:#fff; }
-			.pix-key span { display:inline-block; margin-left:6px; background:#fff; color:#111; padding:4px 8px; border-radius:4px; font-weight:700; }
+				.pix-key { background: rgba(255,255,255,0.06); padding:8px 10px; border-radius:6px; font-weight:700; color:var(--secondary-50); }
+				.pix-key span { display:inline-block; margin-left:6px; background:var(--secondary-50); color:var(--gray-900); padding:4px 8px; border-radius:4px; font-weight:700; }
 
 			.payment-actions { display:flex; gap:8px; }
 
-			.vencendo-hoje { background: rgba(255,87,34,0.06); border-left: 4px solid #ff5722; }
+				.vencendo-hoje { background: rgba(255,87,34,0.06); border-left: 4px solid var(--warning-500); }
 
 			.section-sep td { padding: 10px 12px; background: rgba(255,255,255,0.03); font-weight:700; text-transform:uppercase; }
 		}
-
-		.sem-dados { text-align:center; padding: 30px; opacity: 0.8; }
+			
+			.sem-dados { text-align:center; padding: 30px; opacity: 0.9; color: var(--secondary-50); }
 	}
 
-	.btn-small {
-		background: linear-gradient(135deg, #4CAF50, #45a049);
-		color: white;
-		border: none;
-		padding: 8px 10px;
-		border-radius: 8px;
-		cursor: pointer;
-		font-weight: 600;
-		transition: all 0.15s ease;
-	}
+		.btn-small {
+			background: linear-gradient(135deg, var(--success-500), var(--success-600));
+			color: var(--secondary-50);
+			border: none;
+			padding: 8px 10px;
+			border-radius: 8px;
+			cursor: pointer;
+			font-weight: 600;
+			transition: all 0.15s ease;
+		}
 
-	.btn-small.danger { background: linear-gradient(135deg,#e53935,#c62828); }
+		.btn-small.danger { background: linear-gradient(135deg, var(--error-500), var(--error-600)); }
 }

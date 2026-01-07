@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node scripts/inject-env.js && ng serve",
     "prebuild": "node scripts/inject-env.js",
     "build": "node scripts/inject-env.js && ng build",
     "watch": "ng build --watch --configuration development",

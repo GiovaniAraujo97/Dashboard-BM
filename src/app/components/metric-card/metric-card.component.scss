@@ -66,18 +66,18 @@
   font-weight: 600;
 
   &.change-increase {
-    background: #ecfdf5;
-    color: #059669;
+    background: var(--success-50);
+    color: var(--success-500);
   }
 
   &.change-decrease {
-    background: #fef2f2;
-    color: #dc2626;
+    background: var(--error-50);
+    color: var(--error-500);
   }
 
   &.change-neutral {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: var(--gray-100);
+    color: var(--gray-500);
   }
 }
 
@@ -134,28 +134,28 @@
 
 // Variações de cores
 .card-blue {
-  --card-color: #3b82f6;
-  --card-bg: #eff6ff;
+  --card-color: var(--primary-500);
+  --card-bg: var(--secondary-200);
 }
 
 .card-green {
-  --card-color: #10b981;
-  --card-bg: #ecfdf5;
+  --card-color: var(--success-500);
+  --card-bg: var(--success-50);
 }
 
 .card-red {
-  --card-color: #ef4444;
-  --card-bg: #fef2f2;
+  --card-color: var(--error-500);
+  --card-bg: var(--error-50);
 }
 
 .card-yellow {
-  --card-color: #f59e0b;
-  --card-bg: #fffbeb;
+  --card-color: var(--warning-500);
+  --card-bg: var(--warning-50);
 }
 
 .card-purple {
-  --card-color: #8b5cf6;
-  --card-bg: #f5f3ff;
+  --card-color: var(--secondary-600);
+  --card-bg: var(--secondary-50);
 }
 
 // Responsividade

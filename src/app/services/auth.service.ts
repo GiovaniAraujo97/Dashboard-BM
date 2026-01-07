@@ -11,11 +11,54 @@ export class AuthService {
     const url = (window as any).SUPABASE_URL || (window as any)._env_?.SUPABASE_URL || 'https://pjdvovmfrcvcddqgbdps.supabase.co';
     const key = (window as any).SUPABASE_ANON_KEY || (window as any)._env_?.SUPABASE_ANON_KEY || '';
 
-    if (!key) {
-      console.warn('SUPABASE_ANON_KEY não definido — funcionando em modo local (sem sincronização).');
+    // Treat only clearly invalid/placeholder keys as missing. Real publishable
+    // keys start with `sb_publishable_...` and should be accepted. We consider
+    // the key invalid when it's empty, very short, or contains obvious
+    // placeholder markers like 'YOUR_REAL_KEY'.
+    const isMissingOrPlaceholder = !key || key.trim().length < 20 || key.includes('YOUR_REAL_KEY') || key.includes('XYOUR_REAL_KEYX');
+
+    // Basic validation for URL to avoid unhandled exceptions from Supabase client
+    let urlLooksValid = true;
+    try {
+      // Use the URL constructor to validate structure and disallow angle brackets
+      const u = new URL(url);
+      urlLooksValid = (u.protocol === 'http:' || u.protocol === 'https:') && !!u.hostname && !url.includes('<') && !url.includes('>');
+    } catch (err) {
+      urlLooksValid = false;
+    }
+
+    if (!urlLooksValid) {
+      console.warn('SUPABASE_URL ausente ou inválida — o Supabase client não será inicializado.');
+      this.supabase = null;
+    } else if (isMissingOrPlaceholder) {
+      console.warn('SUPABASE_ANON_KEY ausente ou inválida — o Supabase client não será inicializado.');
       this.supabase = null;
     } else {
-      this.supabase = createClient(url, key);
+      // Use a simple custom storage wrapper that uses localStorage but exposes
+      // async methods. This avoids the Supabase SDK attempting to acquire a
+      // Navigator LockManager lock in some environments which can timeout and
+      // cause `NavigatorLockAcquireTimeoutError`.
+      const localAsyncStorage = {
+        getItem: async (k: string) => {
+          try { return localStorage.getItem(k); } catch { return null; }
+        },
+        setItem: async (k: string, v: string) => {
+          try { localStorage.setItem(k, v); } catch { /* ignore */ }
+        },
+        removeItem: async (k: string) => {
+          try { localStorage.removeItem(k); } catch { /* ignore */ }
+        }
+      } as any;
+
+      this.supabase = createClient(url, key, {
+        auth: {
+          storage: localAsyncStorage,
+          detectSessionInUrl: false
+        }
+      });
+      // Log only the presence and partial key for safety
+      const keyPreview = key ? (key.length > 8 ? key.substring(0, 8) + '...' : 'present') : 'absent';
+      console.debug('AuthService: Supabase client inicializado', { url, keyPreview });
     }
   }
 

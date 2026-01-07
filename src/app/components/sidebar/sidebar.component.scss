@@ -1,8 +1,8 @@
 .sidebar {
   width: 260px;
   height: 100vh;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  background: var(--secondary-50);
+  border-right: 1px solid var(--gray-200);
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
@@ -66,7 +66,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 20px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--gray-100);
 }
 
 .toggle-btn {
@@ -75,7 +75,7 @@
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--gray-500);
   transition: all 0.2s ease;
 
   &:hover {
@@ -115,9 +115,9 @@
   position: relative;
   gap: 12px;
 
-  &:hover {
-    background: #f8fafc;
-    color: #374151;
+    &:hover {
+    background: var(--secondary-200);
+    color: var(--gray-800);
   }
 
   .nav-icon {
@@ -137,8 +137,8 @@
   }
 
   .nav-badge {
-    background: #ef4444;
-    color: white;
+    background: var(--error-500);
+    color: var(--secondary-50);
     font-size: 11px;
     font-weight: 600;
     padding: 2px 8px;
@@ -150,8 +150,8 @@
 }
 
 .nav-item.active .nav-link {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+  color: var(--secondary-50);
   
   &::before {
     content: '';
@@ -160,7 +160,7 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: #ffffff;
+    background: var(--secondary-50);
     border-radius: 0 2px 2px 0;
   }
 
@@ -236,16 +236,16 @@
   border-top: 1px solid #f3f4f6;
   
   .logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6366f1 100%);
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
-    position: relative;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-500) 50%, var(--primary-600) 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(20, 83, 45, 0.12);
+  position: relative;
+  overflow: hidden;
 
     // Efeito de brilho de fundo
     &::before {
@@ -276,20 +276,20 @@
       position: relative;
       z-index: 1;
 
-      .company-name {
+        .company-name {
         margin: 0 0 0.25rem;
         font-size: 1.1rem;
         font-weight: 800;
-        color: white;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        color: var(--secondary-50);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         letter-spacing: -0.5px;
       }
 
-      .company-tagline {
+        .company-tagline {
         margin: 0;
         font-size: 0.75rem;
         color: rgba(255, 255, 255, 0.9);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 1px;

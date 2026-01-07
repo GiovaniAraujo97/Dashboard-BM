@@ -25,6 +25,7 @@
                 [(ngModel)]="loginEmail"
                 name="loginEmail"
                 placeholder="seu@exemplo.com"
+                autocomplete="email"
                 [disabled]="carregando"
                 (keydown)="onEnterPress($event)"
                 (input)="loginErro = false"
@@ -44,6 +45,7 @@
                 [(ngModel)]="loginSenha"
                 name="loginSenha"
                 placeholder="Digite sua senha"
+                autocomplete="current-password"
                 [disabled]="carregando"
                 (keydown)="onEnterPress($event)"
                 (input)="loginErro = false"
@@ -101,6 +103,7 @@
               <label for="signup-email">E-mail</label>
               <div class="input-wrapper">
                 <input id="signup-email" name="signupEmail" type="email" [(ngModel)]="signupEmail" placeholder="seu@exemplo.com" class="form-input" />
+                
                 <i class="fas fa-envelope input-icon"></i>
               </div>
             </div>
@@ -110,6 +113,7 @@
                 <label for="signup-senha">Senha</label>
                 <div class="input-wrapper">
                   <input id="signup-senha" name="signupSenha" type="password" [(ngModel)]="signupSenha" placeholder="Senha" class="form-input" />
+                  
                   <i class="fas fa-lock input-icon"></i>
                 </div>
               </div>
@@ -125,6 +129,9 @@
             <div class="actions-row">
               <button type="button" class="btn-signup" (click)="fazerCadastro()" [disabled]="(!signupEmail.trim() || !signupSenha) || signupSenha !== signupSenhaConfirm">
                 <i class="fas fa-user-plus"></i> Criar conta
+              </button>
+              <button type="button" class="btn-test" (click)="testarConexao()">
+                <i class="fas fa-wifi"></i> Testar conexão
               </button>
             </div>
 
