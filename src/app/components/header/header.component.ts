@@ -366,7 +366,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.warn('Erro ao deslogar via Supabase:', err);
     }
-    localStorage.removeItem('authenticated');
-    this.router.navigate(['/login']);
+    try {
+      // remove local flag and force a full navigation to /login to ensure auth guards re-evaluate
+      localStorage.removeItem('authenticated');
+      // small delay to ensure signOut completes
+      window.location.href = '/login';
+    } catch (e) {
+      console.error('Header: error during logout navigation', e);
+      try { this.router.navigate(['/login']); } catch (er) { /* ignore */ }
+    }
   }
 }
