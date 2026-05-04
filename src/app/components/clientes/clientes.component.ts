@@ -14,16 +14,26 @@ export class ClientesComponent implements OnInit {
   clientes: Cliente[] = [];
   showModal = false;
   showDeleteModal = false;
+  showPhotoModal = false;
+  photoModalSrc = '';
+  photoModalNome = '';
   editingCliente: Cliente | null = null;
   clienteToDelete: Cliente | null = null;
   searchTerm = '';
+  buscandoCep = false;
+  cepErro = '';
   
   novoCliente: Omit<Cliente, 'id' | 'dataCadastro'> = {
     nome: '',
     cpf: '',
     telefone: '',
     email: '',
+    cep: '',
     endereco: '',
+    bairro: '',
+    cidade: '',
+    complemento: '',
+    foto: '',
     renda: 0,
     score: 0,
     status: 'ativo'
@@ -55,7 +65,14 @@ export class ClientesComponent implements OnInit {
   openModal(cliente?: Cliente) {
     if (cliente) {
       this.editingCliente = cliente;
-      this.novoCliente = { ...cliente };
+      this.novoCliente = {
+        ...cliente,
+        cep: cliente.cep || '',
+        bairro: cliente.bairro || '',
+        cidade: cliente.cidade || '',
+        complemento: cliente.complemento || '',
+        foto: cliente.foto || ''
+      };
     } else {
       this.editingCliente = null;
       this.resetForm();
@@ -75,14 +92,21 @@ export class ClientesComponent implements OnInit {
       cpf: '',
       telefone: '',
       email: '',
+      cep: '',
       endereco: '',
+      bairro: '',
+      cidade: '',
+      complemento: '',
+      foto: '',
       renda: 0,
       score: 0,
       status: 'ativo'
     };
+    this.cepErro = '';
+    this.buscandoCep = false;
   }
 
-  salvarCliente() {
+  async salvarCliente() {
     if (!this.isFormValid()) return;
 
     if (this.editingCliente) {
@@ -90,9 +114,9 @@ export class ClientesComponent implements OnInit {
         ...this.editingCliente,
         ...this.novoCliente
       };
-      this.emprestimoService.atualizarCliente(clienteAtualizado);
+      await this.emprestimoService.atualizarCliente(clienteAtualizado);
     } else {
-      this.emprestimoService.adicionarCliente(this.novoCliente);
+      await this.emprestimoService.adicionarCliente(this.novoCliente);
     }
 
     this.closeModal();
@@ -104,9 +128,9 @@ export class ClientesComponent implements OnInit {
     this.showDeleteModal = true;
   }
 
-  excluirCliente() {
+  async excluirCliente() {
     if (this.clienteToDelete) {
-      this.emprestimoService.excluirCliente(this.clienteToDelete.id);
+      await this.emprestimoService.excluirCliente(this.clienteToDelete.id);
       this.showDeleteModal = false;
       this.clienteToDelete = null;
       this.loadClientes();
@@ -169,6 +193,116 @@ export class ClientesComponent implements OnInit {
     let value = event.target.value.replace(/\D/g, '');
     if (value.length > 11) value = value.slice(0, 11);
     this.novoCliente.telefone = value;
+  }
+
+  onCepInput(event: any) {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 8) value = value.slice(0, 8);
+    this.novoCliente.cep = value;
+    this.cepErro = '';
+  }
+
+  formatCep(cep: string | undefined): string {
+    const digits = (cep || '').replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  }
+
+  async buscarCep() {
+    const cep = (this.novoCliente.cep || '').replace(/\D/g, '');
+    if (cep.length === 0) {
+      this.cepErro = '';
+      return;
+    }
+
+    if (cep.length !== 8) {
+      this.cepErro = 'CEP invalido. Use 8 digitos.';
+      return;
+    }
+
+    this.buscandoCep = true;
+    this.cepErro = '';
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      if (!response.ok) {
+        throw new Error('Falha ao consultar CEP');
+      }
+
+      const data = await response.json();
+      if (data.erro) {
+        this.cepErro = 'CEP nao encontrado.';
+        return;
+      }
+
+      this.novoCliente.endereco = (data.logradouro || this.novoCliente.endereco || '').trim();
+      this.novoCliente.bairro = (data.bairro || this.novoCliente.bairro || '').trim();
+      this.novoCliente.cidade = [data.localidade, data.uf]
+        .filter((v: string) => !!v && v.trim().length > 0)
+        .join(' - ')
+        .trim();
+      this.novoCliente.complemento = (data.complemento || this.novoCliente.complemento || '').trim();
+      this.novoCliente.cep = cep;
+    } catch (error) {
+      this.cepErro = 'Nao foi possivel consultar o CEP agora.';
+    } finally {
+      this.buscandoCep = false;
+    }
+  }
+
+  onSelecionarFoto(event: any) {
+    const file: File | null = event?.target?.files?.[0] || null;
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.novoCliente.foto = String(reader.result || '');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removerFoto() {
+    this.novoCliente.foto = '';
+  }
+
+  getClienteFotoPreview(): string {
+    if (this.novoCliente.foto && this.novoCliente.foto.trim()) {
+      return this.novoCliente.foto;
+    }
+    return 'assets/images/avatar-placeholder.svg';
+  }
+
+  openPhotoModal(src: string | undefined, nome: string) {
+    this.photoModalSrc = src && src.trim() ? src : 'assets/images/avatar-placeholder.svg';
+    this.photoModalNome = nome;
+    this.showPhotoModal = true;
+  }
+
+  closePhotoModal() {
+    this.showPhotoModal = false;
+    this.photoModalSrc = '';
+    this.photoModalNome = '';
+  }
+
+  downloadPhoto() {
+    if (!this.photoModalSrc) return;
+
+    const link = document.createElement('a');
+    link.href = this.photoModalSrc;
+    link.download = `cliente-${(this.photoModalNome || 'foto').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.jpg`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  mostrarCamposEnderecoCep(): boolean {
+    const cepCompleto = (this.novoCliente.cep || '').replace(/\D/g, '').length === 8;
+    return cepCompleto || !!this.novoCliente.bairro || !!this.novoCliente.cidade || !!this.novoCliente.complemento;
   }
 
   getClientesAtivos(): number {

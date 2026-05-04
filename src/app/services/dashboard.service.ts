@@ -8,7 +8,12 @@ export interface Cliente {
   cpf: string;
   telefone: string;
   email: string;
+  cep?: string;
   endereco: string;
+  bairro?: string;
+  cidade?: string;
+  complemento?: string;
+  foto?: string;
   renda: number;
   dataCadastro: Date;
   score: number;
@@ -223,6 +228,7 @@ export class EmprestimoService {
 
     emprestimo.proximoVencimento = novoVencimento;
     emprestimo.status = 'ativo';
+    emprestimo.ciclosVencidos = (Number(emprestimo.ciclosVencidos) || 0) + 1;
 
     await this.storageService.updateEmprestimo(emprestimo);
     return novoVencimento;
@@ -257,18 +263,27 @@ export class EmprestimoService {
   private computeNextAndCiclosFromContrato(dataContrato: Date, frequencia: 'quinzenal' | 'mensal') {
     const hoje = new Date();
     const dias = frequencia === 'quinzenal' ? 15 : 30;
+    const hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
 
     let candidate = new Date(dataContrato);
     let ciclos = 0;
 
-    // Advance until candidate > today (strictly after today)
-    while (candidate <= new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) {
-      candidate.setDate(candidate.getDate() + dias);
-      ciclos++;
-      if (candidate.getFullYear() > 2100) break;
+    // Keep the current cycle date (can be today or overdue) instead of jumping
+    // to a future cycle. This prevents quinzenal loans from looking "mensal".
+    while (true) {
+      const nextCandidate = new Date(candidate);
+      nextCandidate.setDate(nextCandidate.getDate() + dias);
+
+      if (nextCandidate <= hojeSemHora) {
+        candidate = nextCandidate;
+        ciclos++;
+        if (candidate.getFullYear() > 2100) break;
+      } else {
+        break;
+      }
     }
 
-    return { proximoVencimento: candidate, ciclosPassados: Math.max(0, ciclos - 1) };
+    return { proximoVencimento: candidate, ciclosPassados: Math.max(0, ciclos) };
   }
 
   /**

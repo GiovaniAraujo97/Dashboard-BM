@@ -16,9 +16,11 @@ export class LoginComponent {
   loginEmail: string = '';
   loginSenha: string = '';
   loginErro: boolean = false;
+  loginErroMensagem: string = '';
   carregando: boolean = false;
 
   // signup fields
+  signupNomeCompleto: string = '';
   signupEmail: string = '';
   signupSenha: string = '';
   signupSenhaConfirm: string = '';
@@ -38,14 +40,25 @@ export class LoginComponent {
 
     this.carregando = true;
     this.loginErro = false;
+    this.loginErroMensagem = '';
 
     try {
       const { error } = await this.auth.signIn(this.loginEmail.trim(), this.loginSenha);
       if (error) throw error;
+
+      await this.auth.syncCurrentProfileFromSession();
+
+      const tenantContext = await this.auth.getCurrentTenantContext();
+      if (!tenantContext) {
+        await this.auth.signOut();
+        throw new Error('Acesso pendente. Aguarde a confirmação do administrador.');
+      }
+
       this.router.navigate(['/dashboard']);
     } catch (err: any) {
       console.error('Erro auth:', err);
       this.loginErro = true;
+      this.loginErroMensagem = err?.message || 'Não foi possível entrar na conta.';
       this.loginSenha = '';
     } finally {
       this.carregando = false;
@@ -60,24 +73,28 @@ export class LoginComponent {
 
   async fazerCadastro() {
     this.signupMessage = '';
-    if (!this.signupEmail.trim() || !this.signupSenha) return;
+    if (!this.signupNomeCompleto.trim() || !this.signupEmail.trim() || !this.signupSenha) return;
     if (this.signupSenha !== this.signupSenhaConfirm) {
       this.signupMessage = 'As senhas não coincidem.';
       return;
     }
 
     try {
-      const res = await this.auth.signUp(this.signupEmail.trim(), this.signupSenha);
+      const res = await this.auth.signUp(this.signupEmail.trim(), this.signupSenha, this.signupNomeCompleto.trim());
       if ((res as any).error) throw (res as any).error;
-      this.signupMessage = 'Conta criada. Verifique seu e-mail para confirmar.';
-      this.signupEmail = this.signupSenha = this.signupSenhaConfirm = '';
+
+      await this.auth.syncCurrentProfileFromSession();
+      await this.auth.signOut();
+      this.signupMessage = 'Cadastro Realizado com Sucesso, aguardo a confirmação do administrador';
+
+      this.signupNomeCompleto = this.signupEmail = this.signupSenha = this.signupSenhaConfirm = '';
     } catch (err: any) {
       console.error('Erro signup:', err);
       // Prefer explicit error message fields, fall back to stringified object
       const rawMsg = err?.message || err?.error?.message || (err && typeof err === 'object' ? JSON.stringify(err) : String(err));
-      // If the low-level fetch failed, suggest common causes (network/CORS/URL)
+      // Friendly hint for network/config issues between frontend and Supabase
       if (rawMsg && rawMsg.indexOf('Failed to fetch') !== -1) {
-        this.signupMessage = rawMsg + ' — Verifique sua conexão, a URL do Supabase e as configurações de CORS (origem: ' + window.location.origin + ').';
+        this.signupMessage = 'Não foi possível conectar ao Supabase agora. Verifique SUPABASE_URL, SUPABASE_ANON_KEY, projeto ativo e URL autorizada (' + window.location.origin + ').';
       } else {
         this.signupMessage = rawMsg || 'Falha ao criar conta.';
       }

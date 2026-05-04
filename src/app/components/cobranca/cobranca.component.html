@@ -8,91 +8,157 @@
       <!-- actions placeholder -->
     </div>
   </div>
+  
+  <div class="extras-row">
+    <div class="extra-card">
+      <h3>Relatórios</h3>
+      <div class="construcao">Em construção</div>
+    </div>
+
+    <div class="extra-card">
+      <h3>Configurações</h3>
+      <div class="construcao">Em construção</div>
+    </div>
+  </div>
 
   <div class="tabela-container">
-    <table class="cobranca-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Cliente</th>
-          <th>Frequência</th>
-          <th>Valor Original</th>
-          <th>Valor Total (c/ juros)</th>
-          <th>Data Contrato</th>
-          <th>Próximo Vencimento</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Vencendo hoje (prioridade) -->
-        <tr *ngFor="let e of emprestimosHoje" class="vencendo-hoje">
-          <td>#{{ e.id }}</td>
-          <td>{{ getClienteNome(e.clienteId, e) }}</td>
-          <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
-          <td>{{ formatCurrency(e.valorOriginal) }}</td>
-          <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
-          <td>{{ formatDate(e.dataContrato) }}</td>
-          <td>{{ formatDate(e.proximoVencimento) }}</td>
-          <td>{{ e.status }}</td>
-          <td class="acoes">
-            <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+    <div class="tabela-header" *ngIf="emprestimos.length > 0">
+      <div>
+        <h3>Central de cobrança</h3>
+        <p>Os vencimentos do dia ficam separados do restante da carteira.</p>
+      </div>
 
-            <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
+      <div class="resumo-badges">
+        <div class="badge prioridade">
+          <span class="badge-label">Vencendo hoje</span>
+          <strong>{{ emprestimosHoje.length }}</strong>
+        </div>
+        <div class="badge">
+          <span class="badge-label">Demais cobranças</span>
+          <strong>{{ emprestimosRestantes.length }}</strong>
+        </div>
+      </div>
+    </div>
 
-            <div *ngIf="activePaymentId === e.id" class="payment-options">
-              <div class="amounts">
-                <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
-                <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+    <div *ngIf="emprestimosHoje.length > 0" class="table-section priority-section">
+      <div class="section-header">
+        <div>
+          <h4>Prioridade do dia</h4>
+          <p>Empréstimos com vencimento para hoje.</p>
+        </div>
+        <span class="section-count">{{ emprestimosHoje.length }} registro(s)</span>
+      </div>
+
+      <table class="cobranca-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Frequência</th>
+            <th>Valor Original</th>
+            <th>Valor Total (c/ juros)</th>
+            <th>Data Contrato</th>
+            <th>Próximo Vencimento</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of emprestimosHoje" class="vencendo-hoje">
+            <td>#{{ e.id }}</td>
+            <td>{{ getClienteNome(e.clienteId, e) }}</td>
+            <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
+            <td>{{ formatCurrency(e.valorOriginal) }}</td>
+            <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
+            <td>{{ formatDate(e.dataContrato) }}</td>
+            <td>{{ formatDate(e.proximoVencimento) }}</td>
+            <td>{{ e.status }}</td>
+            <td class="acoes-cell">
+              <div class="acoes">
+                <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+                <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
               </div>
 
-              <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+              <div *ngIf="activePaymentId === e.id" class="payment-options">
+                <div class="amounts">
+                  <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
+                  <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+                </div>
 
-              <div class="payment-actions">
-                <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
-                <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+                <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+
+                <div class="payment-actions">
+                  <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
+                  <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-        <!-- Separador se houver itens restantes -->
-        <tr *ngIf="emprestimosRestantes.length > 0" class="section-sep">
-          <td colspan="9">Outros empréstimos</td>
-        </tr>
+    <div *ngIf="emprestimosHoje.length === 0 && emprestimos.length > 0" class="sem-prioridade">
+      Nenhum empréstimo vence hoje. Abaixo ficam as próximas cobranças.
+    </div>
 
-        <!-- Restantes -->
-        <tr *ngFor="let e of emprestimosRestantes">
-          <td>#{{ e.id }}</td>
-          <td>{{ getClienteNome(e.clienteId, e) }}</td>
-          <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
-          <td>{{ formatCurrency(e.valorOriginal) }}</td>
-          <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
-          <td>{{ formatDate(e.dataContrato) }}</td>
-          <td>{{ formatDate(e.proximoVencimento) }}</td>
-          <td>{{ e.status }}</td>
-          <td class="acoes">
-            <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+    <div *ngIf="emprestimosRestantes.length > 0" class="table-section">
+      <div class="section-header">
+        <div>
+          <h4>Próximas cobranças</h4>
+          <p>Carteira organizada por vencimento.</p>
+        </div>
+        <span class="section-count">{{ emprestimosRestantes.length }} registro(s)</span>
+      </div>
 
-            <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
-
-            <div *ngIf="activePaymentId === e.id" class="payment-options">
-              <div class="amounts">
-                <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
-                <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+      <table class="cobranca-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Frequência</th>
+            <th>Valor Original</th>
+            <th>Valor Total (c/ juros)</th>
+            <th>Data Contrato</th>
+            <th>Próximo Vencimento</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of emprestimosRestantes">
+            <td>#{{ e.id }}</td>
+            <td>{{ getClienteNome(e.clienteId, e) }}</td>
+            <td>{{ e.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
+            <td>{{ formatCurrency(e.valorOriginal) }}</td>
+            <td>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</td>
+            <td>{{ formatDate(e.dataContrato) }}</td>
+            <td>{{ formatDate(e.proximoVencimento) }}</td>
+            <td>{{ e.status }}</td>
+            <td class="acoes-cell">
+              <div class="acoes">
+                <a class="btn-icon whats" [href]="getWhatsAppLink(e)" target="_blank" *ngIf="getWhatsAppLink(e)" title="Lembrete via WhatsApp">💬</a>
+                <button class="btn-small" (click)="togglePaymentOptions(e.id)" title="Opções de cobrança">Cobrar</button>
               </div>
 
-              <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+              <div *ngIf="activePaymentId === e.id" class="payment-options">
+                <div class="amounts">
+                  <div class="amount-line">Juros (renovação): <strong>{{ formatCurrency(calcularJurosComMulta(e)) }}</strong></div>
+                  <div class="amount-line">Total (quitação): <strong>{{ formatCurrency(calcularValorTotalComMulta(e)) }}</strong></div>
+                </div>
 
-              <div class="payment-actions">
-                <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
-                <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+                <div class="pix-key">PIX: <span>{{ getPixKeyFor(e) }}</span></div>
+
+                <div class="payment-actions">
+                  <a class="btn-small" [href]="getWhatsAppLinkForAction(e,'juros')" target="_blank">Pagar Juros</a>
+                  <a class="btn-small danger" [href]="getWhatsAppLinkForAction(e,'total')" target="_blank">Quitar</a>
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div *ngIf="emprestimos.length === 0" class="sem-dados">Nenhum empréstimo para cobrança.</div>
   </div>

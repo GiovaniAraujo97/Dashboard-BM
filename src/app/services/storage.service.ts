@@ -17,7 +17,9 @@ interface AppData {
 export class StorageService {
   private supabase: SupabaseClient | null = null;
   private userId: string | null = null;
-  private readonly LOCAL_STORAGE_KEY = 'bm-emprestimos-data';
+  private tenantId: string | null = null;
+  private tenantInviteCode: string | null = null;
+  private readonly LOCAL_STORAGE_KEY_PREFIX = 'bm-emprestimos-data';
   private readonly SYNC_INTERVAL = 30000; // 30 segundos
 
   private dataSubject = new BehaviorSubject<AppData>(this.getInitialData());
@@ -36,6 +38,26 @@ export class StorageService {
     } else {
       console.warn('StorageService: Supabase não disponível — usando apenas localStorage');
     }
+  }
+
+  private getLocalStorageKey(): string {
+    return this.tenantId ? `${this.LOCAL_STORAGE_KEY_PREFIX}:${this.tenantId}` : this.LOCAL_STORAGE_KEY_PREFIX;
+  }
+
+  getTenantId(): string | null {
+    return this.tenantId;
+  }
+
+  getTenantInviteCode(): string | null {
+    return this.tenantInviteCode;
+  }
+
+  async ensureTenantContext(input?: { companyName?: string; inviteCode?: string }): Promise<{ tenantId: string; inviteCode: string }> {
+    const tenant = await this.auth.ensureTenantForCurrentUser(input);
+    this.tenantId = tenant.tenantId;
+    this.tenantInviteCode = tenant.inviteCode;
+    await this.loadFromRemote();
+    return { tenantId: tenant.tenantId, inviteCode: tenant.inviteCode };
   }
 
   // Upload avatar image for current user to Supabase Storage (bucket 'avatars')
@@ -103,15 +125,28 @@ export class StorageService {
     try {
       const session = await this.auth.getSession();
       this.userId = session?.user?.id ?? null;
-      if (this.userId) {
-        await this.loadFromRemote();
+      if (this.userId && this.supabase) {
+        const tenant = await this.auth.getCurrentTenantContext();
+        this.tenantId = tenant?.tenantId ?? null;
+        this.tenantInviteCode = tenant?.inviteCode ?? null;
+        if (this.tenantId) {
+          await this.loadFromRemote();
+        }
       }
+
       // escutar mudanças de autenticação
       this.auth.onAuthStateChange(async (_event: string, session: any) => {
         this.userId = session?.user?.id ?? null;
         if (this.userId) {
-          await this.loadFromRemote();
+          const tenant = await this.auth.getCurrentTenantContext();
+          this.tenantId = tenant?.tenantId ?? null;
+          this.tenantInviteCode = tenant?.inviteCode ?? null;
+          if (this.tenantId) {
+            await this.loadFromRemote();
+          }
         } else {
+          this.tenantId = null;
+          this.tenantInviteCode = null;
           // usuário saiu — manter apenas local
           this.dataSubject.next(this.getInitialData());
         }
@@ -133,7 +168,7 @@ export class StorageService {
   // Salvar dados localmente
   private saveToLocal(data: AppData): void {
     try {
-      localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(this.getLocalStorageKey(), JSON.stringify(data));
     } catch (error) {
       console.error('Erro ao salvar dados localmente:', error);
     }
@@ -142,7 +177,7 @@ export class StorageService {
   // Carregar dados locais
   private loadFromLocal(): AppData {
     try {
-      const saved = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(this.getLocalStorageKey());
       if (saved) {
         const parsed = JSON.parse(saved);
         const data = this.normalizeAppData(parsed);
@@ -155,14 +190,14 @@ export class StorageService {
     return this.getInitialData();
   }
 
-  // Sincronizar a partir do Supabase (dados por usuário)
+  // Sincronizar a partir do Supabase (dados por tenant/empresa)
   private async loadFromRemote(): Promise<void> {
-    if (!this.userId || !this.supabase) return;
+    if (!this.userId || !this.supabase || !this.tenantId) return;
     try {
       const { data, error } = await this.supabase!
         .from('user_data')
         .select('content')
-        .eq('user_id', this.userId)
+        .eq('tenant_id', this.tenantId)
         .maybeSingle();
 
       if (error) {
@@ -186,11 +221,15 @@ export class StorageService {
 
         this.dataSubject.next(merged);
         this.saveToLocal(merged);
-        console.log('Dados sincronizados do Supabase (por usuário) — merged com defaults');
+        console.log('Dados sincronizados do Supabase (por tenant) — merged com defaults');
       } else {
         // se não existe registro, criar um inicial
         const initial = this.getInitialData();
-        const { error: insertErr } = await this.supabase!.from('user_data').insert({ user_id: this.userId, content: initial });
+        const { error: insertErr } = await this.supabase!.from('user_data').insert({
+          tenant_id: this.tenantId,
+          owner_user_id: this.userId,
+          content: initial
+        });
         if (insertErr) console.warn('Erro ao inserir registro inicial user_data:', insertErr.message || insertErr);
       }
     } catch (err) {
@@ -198,10 +237,10 @@ export class StorageService {
     }
   }
 
-  // Enviar/atualizar dados no Supabase para o usuário atual
+  // Enviar/atualizar dados no Supabase para o tenant atual
   private async syncToRemote(data: AppData): Promise<void> {
-    if (!this.userId || !this.supabase) {
-      console.warn('Usuário não autenticado — salvando apenas localmente');
+    if (!this.userId || !this.supabase || !this.tenantId) {
+      console.warn('Contexto de tenant indisponível — salvando apenas localmente');
       return;
     }
     try {
@@ -209,7 +248,7 @@ export class StorageService {
       const { data: updated, error: updateError } = await this.supabase!
         .from('user_data')
         .update({ content: data, updated_at: new Date().toISOString() })
-        .eq('user_id', this.userId)
+        .eq('tenant_id', this.tenantId)
         .select();
 
       if (updateError) {
@@ -218,7 +257,11 @@ export class StorageService {
 
       if (!updated || (Array.isArray(updated) && updated.length === 0)) {
         // inserir se não havia registro
-        const { error: insertErr } = await this.supabase!.from('user_data').insert({ user_id: this.userId, content: data });
+        const { error: insertErr } = await this.supabase!.from('user_data').insert({
+          tenant_id: this.tenantId,
+          owner_user_id: this.userId,
+          content: data
+        });
         if (insertErr) console.warn('Erro ao inserir user_data:', insertErr.message || insertErr);
       }
     } catch (err) {
@@ -229,7 +272,7 @@ export class StorageService {
   // Iniciar sincronização automática
   private startAutoSync(): void {
     interval(this.SYNC_INTERVAL).subscribe(() => {
-      if (this.userId) this.loadFromRemote();
+      if (this.userId && this.tenantId) this.loadFromRemote();
     });
   }
 
@@ -400,7 +443,12 @@ export class StorageService {
       cpf: c?.cpf ?? '',
       telefone: c?.telefone ?? '',
       email: c?.email ?? '',
+      cep: c?.cep ?? '',
       endereco: c?.endereco ?? '',
+      bairro: c?.bairro ?? '',
+      cidade: c?.cidade ?? '',
+      complemento: c?.complemento ?? '',
+      foto: c?.foto ?? '',
       renda: this.parseNumber(c?.renda),
       dataCadastro: dc ? new Date(dc) : new Date(),
       score: Number(c?.score) || 0,

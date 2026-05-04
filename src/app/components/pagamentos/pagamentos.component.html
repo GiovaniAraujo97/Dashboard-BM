@@ -61,7 +61,21 @@
     </div>
     
     <div class="acoes">
-      <!-- 'Limpar Órfãos' button removed per design decision -->
+      <div class="legenda-cores">
+        <span class="legenda-titulo">Cores da tabela:</span>
+        <span class="legenda-item">
+          <span class="legenda-dot hoje"></span>
+          Vence hoje
+        </span>
+        <span class="legenda-item">
+          <span class="legenda-dot atrasado"></span>
+          Atrasado
+        </span>
+        <span class="legenda-item">
+          <span class="legenda-dot pago"></span>
+          Pago
+        </span>
+      </div>
     </div>
   </div>
 
@@ -84,7 +98,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let emprestimo of emprestimosAtivos">
+        <tr *ngFor="let emprestimo of emprestimosAtivos" [ngClass]="getLinhaEmprestimoClass(emprestimo)">
           <td>#{{ emprestimo.id }}</td>
           <td>{{ getClienteNome(emprestimo.clienteId, emprestimo) }}</td>
           <td>{{ emprestimo.frequencia === 'quinzenal' ? 'Quinzenal (15d)' : 'Mensal (30d)' }}</td>
@@ -96,14 +110,17 @@
             </small>
           </td>
           <td>{{ formatDate(emprestimo.dataContrato) }}</td>
-          <td [class]="emprestimo.status">
+          <td [ngClass]="getStatusCellClass(emprestimo)">
             {{ formatDate(emprestimo.proximoVencimento) }}
           </td>
-          <td [class]="emprestimo.status">
-            <span *ngIf="emprestimo.status === 'vencido'" class="atraso">
+          <td [ngClass]="getStatusCellClass(emprestimo)">
+            <span *ngIf="emprestimo.status !== 'pago' && estaAtrasado(emprestimo)" class="atraso">
               {{ calcularDiasAtraso(emprestimo) }} dias de atraso
             </span>
-            <span *ngIf="emprestimo.status === 'ativo'" class="prazo">
+            <span *ngIf="emprestimo.status !== 'pago' && !estaAtrasado(emprestimo) && estaVencendoHoje(emprestimo)" class="vencendo-hoje">
+              Vence hoje
+            </span>
+            <span *ngIf="emprestimo.status !== 'pago' && !estaAtrasado(emprestimo) && !estaVencendoHoje(emprestimo)" class="prazo">
               No prazo
             </span>
             <span *ngIf="emprestimo.status === 'pago'" class="pago-status">

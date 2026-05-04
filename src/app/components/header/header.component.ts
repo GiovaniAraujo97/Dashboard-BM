@@ -262,6 +262,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.fecharNotificacoes();
   }
 
+  abrirCobrancaPorNotificacao(notificacao: NotificacaoEmprestimo) {
+    this.navegarPara.emit('cobranca');
+    this.fecharNotificacoes();
+  }
+
   toggleUserMenu() {
     this.mostrarUserDropdown = !this.mostrarUserDropdown;
     this.mostrarNotificacoes = false;
@@ -310,6 +315,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   onVoltarDashboard() {
     this.voltarDashboard.emit();
+  }
+
+  irParaDashboardPelaLogo() {
+    this.navegarPara.emit('dashboard');
+    this.fecharTodosMenus();
   }
 
   navegarParaTela(tela: string) {

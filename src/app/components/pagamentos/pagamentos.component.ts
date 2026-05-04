@@ -82,11 +82,56 @@ export class PagamentosComponent implements OnInit {
     this.carregarPagamentos();
   }
 
+  private normalizeDate(value: Date): Date {
+    const date = new Date(value);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    const da = this.normalizeDate(a);
+    const db = this.normalizeDate(b);
+    return da.getTime() === db.getTime();
+  }
+
+  private isAtrasado(emprestimo: Emprestimo): boolean {
+    if (emprestimo.status === 'pago') return false;
+    const hoje = this.normalizeDate(new Date());
+    const vencimento = this.normalizeDate(emprestimo.proximoVencimento);
+    return vencimento.getTime() < hoje.getTime();
+  }
+
+  private isVencendoHoje(emprestimo: Emprestimo): boolean {
+    if (emprestimo.status === 'pago') return false;
+    return this.isSameDay(emprestimo.proximoVencimento, new Date());
+  }
+
+  estaAtrasado(emprestimo: Emprestimo): boolean {
+    return this.isAtrasado(emprestimo);
+  }
+
+  estaVencendoHoje(emprestimo: Emprestimo): boolean {
+    return this.isVencendoHoje(emprestimo);
+  }
+
+  getLinhaEmprestimoClass(emprestimo: Emprestimo): string {
+    if (emprestimo.status === 'pago') return 'row-pago';
+    if (this.isAtrasado(emprestimo)) return 'row-atrasado';
+    if (this.isVencendoHoje(emprestimo)) return 'row-vencendo-hoje';
+    return '';
+  }
+
+  getStatusCellClass(emprestimo: Emprestimo): string {
+    if (emprestimo.status === 'pago') return 'pago';
+    if (this.isAtrasado(emprestimo)) return 'vencido';
+    if (this.isVencendoHoje(emprestimo)) return 'vencendo-hoje';
+    return 'ativo';
+  }
+
   calcularDiasAtraso(emprestimo: Emprestimo): number {
-    const hoje = new Date();
-    const vencimento = new Date(emprestimo.proximoVencimento);
+    const hoje = this.normalizeDate(new Date());
+    const vencimento = this.normalizeDate(emprestimo.proximoVencimento);
     const diffTime = hoje.getTime() - vencimento.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   }
 
@@ -215,8 +260,8 @@ export class PagamentosComponent implements OnInit {
 
   // Métodos para empréstimos ativos
   getStatusVencimento(vencimento: Date): string {
-    const hoje = new Date();
-    const venc = new Date(vencimento);
+    const hoje = this.normalizeDate(new Date());
+    const venc = this.normalizeDate(vencimento);
     
     if (venc < hoje) return 'vencido';
     
@@ -228,8 +273,8 @@ export class PagamentosComponent implements OnInit {
   }
 
   getDiasAtraso(vencimento: Date): string {
-    const hoje = new Date();
-    const venc = new Date(vencimento);
+    const hoje = this.normalizeDate(new Date());
+    const venc = this.normalizeDate(vencimento);
     
     if (venc >= hoje) {
       const diffTime = venc.getTime() - hoje.getTime();
@@ -458,12 +503,6 @@ export class PagamentosComponent implements OnInit {
 
     // Para outros casos, tentar usar diretamente (pode já ter DDI)
     return digits;
-  }
-
-  private isSameDay(a: Date, b: Date): boolean {
-    const da = new Date(a);
-    const db = new Date(b);
-    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
   }
 
   private buildWhatsAppMessage(emprestimo: Emprestimo): string {

@@ -9,7 +9,7 @@
         <span class="voltar-text">{{ getViewTitle() }}</span>
       </button>
 
-      <div class="logo logo-compacto">
+      <div class="logo logo-compacto" (click)="irParaDashboardPelaLogo()" title="Ir para Dashboard">
         <h1>BM Empréstimos</h1>
         <span class="company-subtitle">Empréstimos Quinzenais e Mensais</span>
       </div>
@@ -86,7 +86,13 @@
               
               <div class="notification-content">
                 <div class="notification-header">
-                  <strong>{{ notificacao.cliente }}</strong>
+                    <button
+                      type="button"
+                      class="notification-link"
+                      (click)="abrirCobrancaPorNotificacao(notificacao)"
+                    >
+                      {{ notificacao.cliente }}
+                    </button>
                   <span class="notification-value">{{ formatarMoeda(notificacao.valor) }}</span>
                 </div>
                 
@@ -104,7 +110,7 @@
                 </div>
               </div>
 
-              <button class="notification-dismiss" (click)="removerNotificacao(notificacao.id)" title="Descartar">✕</button>
+              <button class="notification-dismiss" (click)="$event.stopPropagation(); removerNotificacao(notificacao.id)" title="Descartar">✕</button>
             </div>
           </div>
 

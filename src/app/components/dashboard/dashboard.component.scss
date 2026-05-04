@@ -15,6 +15,10 @@
   flex-direction: column;
   transition: margin-left 0.3s ease;
 
+  &.sidebar-collapsed {
+    margin-left: 70px;
+  }
+
   @media (max-width: 1024px) {
     margin-left: 80px; // Sidebar collapsed
   }
@@ -270,5 +274,59 @@
       background: var(--gray-100);
       color: var(--gray-700);
     }
+  }
+}
+
+/* ===== MONOCHROME THEME OVERRIDES ===== */
+.dashboard-main {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.page-title {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: #111827;
+}
+
+.page-subtitle {
+  color: #4b5563;
+}
+
+.chart-card {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.status-dot {
+  &.active {
+    background: #111827;
+  }
+
+  &.pending {
+    background: #4b5563;
+  }
+
+  &.overdue {
+    background: #6b7280;
+  }
+
+  &.completed {
+    background: #9ca3af;
+  }
+}
+
+.recent-loans .empty-state .btn-primary {
+  background: #111827;
+  color: #ffffff;
+}
+
+.loan-item .loan-status {
+  &.status-ativo,
+  &.status-vencido,
+  &.status-pago {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
   }
 }

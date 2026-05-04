@@ -66,9 +66,15 @@ try {
   fs.writeFileSync(outPath, result, 'utf8');
   console.log('[inject-env] Wrote', outPath);
 
-  // Extra diagnostic: warn if the anon key appears to be the placeholder or empty
-  const placeholderPattern = /sb_publishable_[A-Z0-9_]+/i;
-  if (!supabaseKey || placeholderPattern.test(supabaseKey)) {
+  // Extra diagnostic: warn only for clearly invalid placeholder values
+  const isPlaceholderKey =
+    !supabaseKey ||
+    supabaseKey.trim().length < 20 ||
+    /YOUR|PLACEHOLDER|XXX|CHAVE|KEY/i.test(supabaseKey) ||
+    supabaseKey.includes('<') ||
+    supabaseKey.includes('>');
+
+  if (isPlaceholderKey) {
     console.warn('[inject-env] Warning: SUPABASE_ANON_KEY is empty or looks like a placeholder. Verify environment variables or .env files.');
   }
 } catch (err) {

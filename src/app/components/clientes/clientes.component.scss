@@ -271,6 +271,31 @@
 }
 
 .cliente-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .cliente-foto {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    background: #ffffff;
+    flex-shrink: 0;
+    cursor: zoom-in;
+
+    &:hover {
+      border-color: #93c5fd;
+      transform: scale(1.04);
+      transition: all 0.18s ease;
+    }
+  }
+
+  .cliente-meta {
+    min-width: 0;
+  }
+
   strong {
     display: block;
     color: #1e293b;
@@ -454,6 +479,58 @@
   .modal-body {
     padding: 2rem;
 
+    .foto-cliente-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding: 0.9rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+
+      .foto-preview {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #dbeafe;
+        background: #ffffff;
+        cursor: zoom-in;
+      }
+
+      .foto-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        input[type='file'] {
+          display: none;
+        }
+
+        .btn-foto {
+          border: none;
+          width: fit-content;
+          padding: 0.45rem 0.75rem;
+          border-radius: 8px;
+          background: #dbeafe;
+          color: #1d4ed8;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .btn-remover {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        small {
+          color: #64748b;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -469,6 +546,20 @@
         margin-bottom: 0.5rem;
         font-weight: 600;
         color: #374151;
+      }
+
+      .field-help {
+        display: block;
+        margin-top: 0.35rem;
+        color: #64748b;
+        font-size: 0.8rem;
+      }
+
+      .field-error {
+        display: block;
+        margin-top: 0.35rem;
+        color: #dc2626;
+        font-size: 0.8rem;
       }
 
       input, select {
@@ -540,6 +631,27 @@
   }
 }
 
+.modal-photo {
+  max-width: 760px;
+
+  .photo-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+
+  .photo-full {
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+}
+
 .delete-confirmation {
   text-align: center;
   padding: 1rem 0;
@@ -591,6 +703,10 @@
 
     .modal-body {
       padding: 1rem;
+
+      .foto-cliente-box {
+        align-items: flex-start;
+      }
 
       .form-row {
         grid-template-columns: 1fr;

@@ -79,8 +79,17 @@
           <tr *ngFor="let cliente of clientesFiltrados" class="cliente-row">
             <td>
               <div class="cliente-info">
-                <strong>{{ cliente.nome }}</strong>
-                <small>{{ cliente.endereco }}</small>
+                <img
+                  [src]="cliente.foto || 'assets/images/avatar-placeholder.svg'"
+                  alt="Foto de {{ cliente.nome }}"
+                  class="cliente-foto"
+                  (click)="openPhotoModal(cliente.foto, cliente.nome)"
+                  onerror="this.src='assets/images/avatar-placeholder.svg'"
+                >
+                <div class="cliente-meta">
+                  <strong>{{ cliente.nome }}</strong>
+                  <small>{{ cliente.endereco }}</small>
+                </div>
               </div>
             </td>
             <td>
@@ -140,6 +149,16 @@
     </div>
 
     <form class="modal-body" (ngSubmit)="salvarCliente()">
+      <div class="foto-cliente-box">
+        <img [src]="getClienteFotoPreview()" alt="Foto do cliente" class="foto-preview" (click)="openPhotoModal(novoCliente.foto, novoCliente.nome || 'Cliente')">
+        <div class="foto-actions">
+          <label for="fotoCliente" class="btn-foto">Adicionar foto</label>
+          <button type="button" class="btn-foto btn-remover" (click)="removerFoto()" *ngIf="novoCliente.foto">Remover</button>
+          <input id="fotoCliente" type="file" accept="image/*" (change)="onSelecionarFoto($event)">
+          <small>JPG, PNG ou WEBP.</small>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label for="nome">Nome Completo *</label>
@@ -190,6 +209,25 @@
         </div>
       </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cep">CEP</label>
+            <input
+              type="text"
+              id="cep"
+              [ngModel]="formatCep(novoCliente.cep)"
+              (ngModelChange)="novoCliente.cep = $event"
+              (input)="onCepInput($event)"
+              (blur)="buscarCep()"
+              name="cep"
+              placeholder="00000-000"
+              maxlength="9">
+            <small class="field-help" *ngIf="!buscandoCep && !cepErro">Digite o CEP para preencher o endereco automaticamente.</small>
+            <small class="field-help" *ngIf="buscandoCep">Consultando CEP...</small>
+            <small class="field-error" *ngIf="cepErro">{{ cepErro }}</small>
+          </div>
+        </div>
+
       <div class="form-group">
         <label for="endereco">Endereço Completo *</label>
         <input 
@@ -198,7 +236,38 @@
           [(ngModel)]="novoCliente.endereco"
           name="endereco"
           required
-          placeholder="Rua, número, bairro, cidade - CEP">
+            placeholder="Rua, numero, bairro, cidade - UF">
+      </div>
+
+      <div class="form-row" *ngIf="mostrarCamposEnderecoCep()">
+        <div class="form-group">
+          <label for="bairro">Bairro</label>
+          <input
+            type="text"
+            id="bairro"
+            [(ngModel)]="novoCliente.bairro"
+            name="bairro"
+            placeholder="Ex.: Centro">
+        </div>
+        <div class="form-group">
+          <label for="cidade">Cidade</label>
+          <input
+            type="text"
+            id="cidade"
+            [(ngModel)]="novoCliente.cidade"
+            name="cidade"
+            placeholder="Ex.: Sao Paulo - SP">
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="mostrarCamposEnderecoCep()">
+        <label for="complemento">Complemento</label>
+        <input
+          type="text"
+          id="complemento"
+          [(ngModel)]="novoCliente.complemento"
+          name="complemento"
+          placeholder="Ex.: Casa, Apto 12, Bloco B">
       </div>
 
       <div class="form-row">
@@ -245,6 +314,25 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Modal de Visualizacao da Foto -->
+<div class="modal-overlay" *ngIf="showPhotoModal" (click)="closePhotoModal()">
+  <div class="modal modal-photo" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Foto do Cliente</h2>
+      <button class="close-btn" (click)="closePhotoModal()">✕</button>
+    </div>
+
+    <div class="modal-body photo-body">
+      <img [src]="photoModalSrc" [alt]="photoModalNome" class="photo-full" onerror="this.src='assets/images/avatar-placeholder.svg'">
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closePhotoModal()">Fechar</button>
+      <button type="button" class="btn-primary" (click)="downloadPhoto()">Baixar Imagem</button>
+    </div>
   </div>
 </div>
 

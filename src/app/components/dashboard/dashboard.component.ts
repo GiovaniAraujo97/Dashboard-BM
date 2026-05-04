@@ -34,6 +34,7 @@ interface ResumoEmprestimos {
 })
 export class DashboardComponent implements OnInit {
   currentView = 'dashboard';
+  sidebarCollapsed = false;
   
   // Dados do dashboard
   emprestimos: Emprestimo[] = [];
@@ -143,6 +144,10 @@ export class DashboardComponent implements OnInit {
 
   onVoltarDashboard() {
     this.currentView = 'dashboard';
+  }
+
+  onSidebarCollapsedChange(collapsed: boolean) {
+    this.sidebarCollapsed = collapsed;
   }
 
   // Métodos temporários para os botões

@@ -31,7 +31,7 @@
 
   <!-- Logo da Empresa -->
   <div class="sidebar-logo" *ngIf="!isCollapsed">
-    <div class="logo-container">
+    <div class="logo-container" (click)="irParaDashboard()" title="Ir para Dashboard">
       <div class="logo-icon">🏦</div>
       <div class="logo-text">
         <h3 class="company-name">BM Empréstimos</h3>

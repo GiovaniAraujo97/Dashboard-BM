@@ -1,5 +1,5 @@
 <div class="app-layout">
-  <div class="main-content">
+  <div class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
     <app-header 
       [currentView]="currentView"
       (novoEmprestimo)="onNovoEmprestimo()"
@@ -10,7 +10,11 @@
     </app-header>
     
     <div class="content-wrapper">
-      <app-sidebar (viewChange)="onViewChange($event)"></app-sidebar>
+      <app-sidebar
+        [currentView]="currentView"
+        (viewChange)="onViewChange($event)"
+        (collapsedChange)="onSidebarCollapsedChange($event)"
+      ></app-sidebar>
       
       <main class="dashboard-main">
         <div *ngIf="currentView === 'dashboard'">

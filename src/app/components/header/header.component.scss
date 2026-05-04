@@ -75,6 +75,11 @@
     
     .logo {
       transition: all 0.3s ease;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.92;
+      }
       
       &.logo-compacto {
         h1 {
@@ -713,10 +718,19 @@
             align-items: flex-start;
             margin-bottom: 0.5rem;
 
-            strong {
+            .notification-link {
+              padding: 0;
+              border: none;
+              background: transparent;
               font-weight: 700;
               color: #1e293b;
               font-size: 0.95rem;
+              cursor: pointer;
+              text-align: left;
+
+              &:hover {
+                text-decoration: underline;
+              }
             }
 
             .notification-value {
@@ -1477,5 +1491,229 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ===== MONOCHROME THEME OVERRIDES ===== */
+.header {
+  background: #111111;
+  color: #ffffff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+
+  .header-left {
+    .btn-voltar {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .logo h1,
+    .logo .company-subtitle {
+      color: #ffffff;
+      text-shadow: none;
+    }
+  }
+
+  .header-center .quick-actions .btn-action {
+    text-transform: none;
+    letter-spacing: 0.2px;
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #d1d5db;
+    box-shadow: none;
+
+    &:hover {
+      transform: translateY(-1px);
+      background: #f3f4f6;
+      box-shadow: none;
+    }
+  }
+
+  .header-right {
+    .menu-mobile-btn,
+    .notifications .notification-btn,
+    .user-profile .user-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      box-shadow: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .notifications .notification-btn .notification-badge {
+      background: #ffffff;
+      color: #111111;
+      border-color: #111111;
+      box-shadow: none;
+    }
+  }
+}
+
+.notifications {
+  .notifications-dropdown {
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.16);
+
+    .notifications-header {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+
+      h3 {
+        color: #111827;
+      }
+
+      .close-btn {
+        color: #4b5563;
+
+        &:hover {
+          background: #f3f4f6;
+          color: #111827;
+        }
+      }
+    }
+
+    .notifications-content {
+      .notification-item {
+        border-bottom: 1px solid #f3f4f6;
+
+        &:hover {
+          background: #f9fafb;
+        }
+
+        &.urgencia-alta,
+        &.urgencia-media,
+        &.urgencia-baixa {
+          border-left-color: #6b7280;
+          background: linear-gradient(90deg, rgba(107, 114, 128, 0.08) 0%, transparent 100%);
+        }
+
+        .notification-icon {
+          background: #f3f4f6;
+        }
+
+        .notification-content {
+          .notification-header .notification-value {
+            color: #111827;
+          }
+
+          .notification-footer .notification-urgency {
+            &.badge-alta,
+            &.badge-media,
+            &.badge-baixa {
+              background: #f3f4f6;
+              color: #374151;
+              border: 1px solid #d1d5db;
+            }
+          }
+        }
+      }
+    }
+
+    .notifications-footer {
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+
+      .btn-action-notification {
+        background: #111111;
+        color: #ffffff;
+        box-shadow: none;
+
+        &:hover {
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}
+
+.menu-mobile {
+  .menu-mobile-content {
+    .mobile-navigation h4,
+    .mobile-actions h4 {
+      color: #111827;
+    }
+
+    .mobile-navigation .mobile-nav-list .mobile-nav-btn {
+      border-color: #d1d5db;
+      color: #111827;
+
+      .mobile-nav-icon {
+        background: #f3f4f6;
+      }
+
+      .mobile-nav-arrow {
+        color: #4b5563;
+      }
+
+      &:hover {
+        border-color: #9ca3af;
+        background: #f9fafb;
+      }
+
+      &.active {
+        border-color: #111827;
+        background: #f3f4f6;
+        color: #111827;
+
+        .mobile-nav-icon {
+          background: #111827;
+          color: #ffffff;
+        }
+      }
+    }
+
+    .mobile-actions .mobile-btn {
+      background: #111111;
+      color: #ffffff;
+      box-shadow: none;
+
+      &:hover {
+        box-shadow: none;
+      }
+    }
+
+    .mobile-notifications {
+      .mobile-notification-list .mobile-notification-item {
+        border-left-color: #6b7280;
+        background: #f9fafb;
+
+        &.urgencia-alta,
+        &.urgencia-media,
+        &.urgencia-baixa {
+          border-left-color: #6b7280;
+          background: #f9fafb;
+        }
+
+        .mobile-notification-header .mobile-notification-value {
+          color: #111827;
+        }
+      }
+
+      .mobile-btn-notification {
+        background: #111111;
+        box-shadow: none;
+      }
+    }
+
+    .mobile-user-info .mobile-logout-btn {
+      background: #111111;
+      box-shadow: none;
+
+      &:hover,
+      &:active {
+        background: #1f2937;
+        box-shadow: none;
+      }
+    }
   }
 }
